@@ -1,0 +1,15 @@
+*.o
+*~
+*.set
+!DSPpar.set
+*Dict*
+PlxSdk/
+_book/
+Pixie16msg.txt
+trace.dat
+data/
+decode
+event
+pku
+online
+README/node_modules/*
