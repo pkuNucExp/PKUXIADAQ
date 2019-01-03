@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 六 6月 18 13:37:42 2016 (+0800)
-;; Last-Updated: 一 11月  5 17:21:14 2018 (+0800)
+;; Last-Updated: 四 1月  3 18:43:11 2019 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 109
+;;     Update #: 114
 ;; URL: http://wuhongyi.cn -->
 
 # README
@@ -25,7 +25,7 @@
 
 ### 稳定版本
 
-**稳定版本 Version:2018.05.27**  
+**稳定版本 Version:2018.12.07**  
 
 下载最新版本，请点击:  [PKUXIADAQ stable](https://github.com/pkuNucExp/PKUXIADAQ)
 
@@ -38,6 +38,8 @@
 
 
 ### 准预览版本
+
+**准预览版本 Version:2018.12.07**  
 
 程序下载请访问:  [PKUXIADAQ](https://github.com/wuhongyi/PKUXIADAQ)
 
@@ -66,7 +68,7 @@
 - Wolfgang Hennig(XIA LLC)
 
 软件主要开发者:
-- 2016 - 2016
+- 2015 - 2016
 	- Jing Li 李晶(lijinger02@126.com) 
 - 2016 - now
 	- Hongyi Wu 吴鸿毅(wuhongyi@qq.com) 

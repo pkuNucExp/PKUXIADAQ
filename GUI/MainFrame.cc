@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 3月  9 13:01:33 2018 (+0800)
-// Last-Updated: 二 5月  8 18:31:34 2018 (+0800)
+// Last-Updated: 五 12月  7 20:48:23 2018 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 14
+//     Update #: 39
 // URL: http://wuhongyi.cn 
 
 #include "MainFrame.hh"
@@ -17,6 +17,7 @@
 #include "pixie16app_export.h"
 #include "pixie16sys_export.h"
 
+#include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>//stat(const char *file_name,struct stat *buf)
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
@@ -224,6 +225,7 @@ Bool_t MainFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    {	      
 	    case BOOT_BUTTON:
 	      bootB->SetEnabled(0);
+	      filesetdone->SetEnabled(0);
 	      fClient->GetColorByName("red", color);
 	      StateMsgFold1->SetTextColor(color, false);
 	      StateMsgFold1->SetText("booting...wait a moment");
@@ -231,6 +233,8 @@ Bool_t MainFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	      // gPad->SetCursor(kWatch);
 	      if(detector != 0) delete detector;
 	      detector = new Detector(flagonlinemode);
+	      detector->SetRecordFlag(true);
+	      recordchk->SetState(kButtonDown);
 	      if(detector->BootSystem())
 		{
 		  fClient->GetColorByName("green", color);
@@ -239,6 +243,7 @@ Bool_t MainFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  // gPad->SetCursor(kPointer);
 
 		  SetMenuStatus(true,flagonlinemode);
+		  filesetdone->SetEnabled(1);
 		}
 	      else
 		{
@@ -357,7 +362,7 @@ void MainFrame::MakeFold2Panel(TGCompositeFrame *TabPanel)
   filerunnum->Associate(this);
 
   filesetdone = new TGTextButton(runnumf,"Complete");
-  filesetdone->Connect("Pressed()","MainFrame",this,"SetLSFileName()");
+  filesetdone->Connect("Pressed()","MainFrame",this,"ConfigFileInfo()");
   runnumf->AddFrame(filesetdone,new TGLayoutHints(kLHintsLeft|kLHintsTop,10,3,4,0));
 
 
@@ -379,7 +384,17 @@ void MainFrame::MakeFold2Panel(TGCompositeFrame *TabPanel)
   fonlinedata = 1;
   onlinechk->Connect("Clicked()","MainFrame",this,"SetLSonlinedataf()");
   cgrouphframe0->AddFrame(onlinechk,new TGLayoutHints(kLHintsExpandX|kLHintsTop,4,4,5,10));
+  // record/not record raw data
+  recordchk = new TGCheckButton(cgrouphframe0,"&Record");
+  fClient->GetColorByName("red", color);
+  recordchk->SetTextColor(color);
+  recordchk->SetState(kButtonDown);
+  frecorddata = 1;
+  recordchk->Connect("Clicked()","MainFrame",this,"SetRecordDataFlag()");
+  cgrouphframe0->AddFrame(recordchk,new TGLayoutHints(kLHintsExpandX|kLHintsTop,4,4,5,10));
+  
 
+  
   TGHorizontalFrame *cgrouphframe1 = new TGHorizontalFrame(controlgroup);
   controlgroup->AddFrame(cgrouphframe1,new TGLayoutHints(kLHintsExpandX|kLHintsTop));
   // start/stop LSM run button
@@ -473,26 +488,8 @@ void MainFrame::MakeFold2Panel(TGCompositeFrame *TabPanel)
 
 }
 
-
-void MainFrame::SetLSFileName()
+void MainFrame::ConfigFileInfo()
 {
-  if(detector == NULL)
-    {
-      std::cout<<"Modules not booted!"<<std::endl;
-      return ;
-    }
-  const char *path = filepathtext->GetText();
-  const char *filen = filenametext->GetText();
-  runnum = (int)filerunnum->GetIntNumber();
-
-  detector->SetRunNumber(runnum);
-  for(int i = 0; i < detector->NumModules; i++)
-    {
-      sprintf(Filename[i],"%s%s_R%04d_M%02d.bin",path,filen,runnum,i);
-      sprintf(Histogramname[i],"%s%s_histogram_R%04d_M%02d.bin",path,filen,runnum,i);
-      // cout<<i<<" "<<Filename[i]<<endl;
-    }
-
   if(IsDirectoryExists(filepathtext->GetText()))
     {
       ofstream out("../parset/Run.config");
@@ -505,6 +502,48 @@ void MainFrame::SetLSFileName()
     }
   else
     {
+      startdaq->SetEnabled(0);
+      std::cout<<"The output file directory does not exist"<<std::endl;
+    }
+}
+
+void MainFrame::SetLSFileName()
+{
+  if(detector == NULL)
+    {
+      std::cout<<"Modules not booted!"<<std::endl;
+      return ;
+    }
+  const char *path = filepathtext->GetText();
+  const char *filen = filenametext->GetText();
+  runnum = (int)filerunnum->GetIntNumber();
+
+  CreateDirectory(TString::Format("%s%04d",path,runnum).Data());
+  
+  detector->SetRunNumber(runnum);
+  for(int i = 0; i < detector->NumModules; i++)
+    {
+      sprintf(Filename[i],"%s%04d/%s_R%04d_M%02d.bin",path,runnum,filen,runnum,i);
+      sprintf(Histogramname[i],"%s%04d/%s_histogram_R%04d_M%02d.bin",path,runnum,filen,runnum,i);
+      // cout<<i<<" "<<Filename[i]<<endl;
+    }
+
+  sprintf(DSPParsFileName,"%s%04d/DSPPar.set",path,runnum);
+  sprintf(LogFileName,"%s%04d/run.log",path,runnum);
+  
+  if(IsDirectoryExists(TString::Format("%s%04d",path,runnum).Data()))
+    {
+      ofstream out("../parset/Run.config");
+      out<<filepathtext->GetText()<<endl;
+      out<<filenametext->GetText()<<endl;
+      out.close();
+      
+      startdaq->SetEnabled(1);
+      fstartdaq = 0;
+    }
+  else
+    {
+      startdaq->SetEnabled(0);
       std::cout<<"The output file directory does not exist"<<std::endl;
     }
 }
@@ -515,7 +554,8 @@ void MainFrame::StartLSRun()
     {
       onlinemode->SetEnabled(0);
       filesetdone->SetEnabled(0);
-
+      recordchk->SetEnabled(0);
+      
       SetMenuStatus(false,flagonlinemode);
       
       SetLSFileName();
@@ -530,6 +570,21 @@ void MainFrame::StartLSRun()
 	      return;
 	    }
 	}
+
+      
+      std::ofstream writelog;//fstream
+      writelog.open(LogFileName,ios::app);//ios::bin ios::app
+      if(!writelog.is_open())
+	{
+	  std::cout<<"can't open Log file."<<std::endl;
+	}
+      time_t timep;
+      time(&timep);
+      char tmp[64];
+      strftime(tmp, sizeof(tmp), "Start: %Y-%m-%d %H:%M:%S",localtime(&timep));
+      writelog<<tmp<<endl;
+      writelog.close();    
+      
       if(detector->StartLSMRun(0))
 	{
 	  std::cout<<"CANNOT start the LSM Run!"<<std::endl;
@@ -538,7 +593,7 @@ void MainFrame::StartLSRun()
 
 	  onlinemode->SetEnabled(1);
 	  filesetdone->SetEnabled(1);
-	  
+	  recordchk->SetEnabled(1);
 	  return;
 	}
 
@@ -566,8 +621,22 @@ void MainFrame::StartLSRun()
 
       SetMenuStatus(true,flagonlinemode);
 
+      std::ofstream writelog;//fstream
+      writelog.open(LogFileName,ios::app);//ios::bin ios::app
+      if(!writelog.is_open())
+	{
+	  std::cout<<"can't open Log file."<<std::endl;
+	}
+      time_t timep;
+      time(&timep);
+      char tmp[64];
+      strftime(tmp, sizeof(tmp), "Stop : %Y-%m-%d %H:%M:%S",localtime(&timep));
+      writelog<<tmp<<endl;
+      writelog.close();    
+      
       onlinemode->SetEnabled(1);
       filesetdone->SetEnabled(1);
+      recordchk->SetEnabled(1);
     }
 }
 
@@ -594,6 +663,7 @@ void MainFrame::LSRunReadData()
       if(counter > 10) break;
     }
 
+  detector->SaveDSPPars(DSPParsFileName);
   for(int i = 0;i < detector->NumModules; i++)
     {
       detector->SaveHistogram(Histogramname[i],i);
@@ -640,6 +710,23 @@ void MainFrame::SetLSonlinedataf()
     }
 }
 
+void MainFrame::SetRecordDataFlag()
+{
+  if(recordchk->IsOn())
+    {
+      frecorddata = true;
+      detector->SetRecordFlag(true);
+      std::cout<<"DAQ will record data!"<<std::endl;
+    }
+  else
+    {
+      frecorddata = false;
+      detector->SetRecordFlag(false);
+      std::cout<<"DAQ wont record data!"<<std::endl;
+    }
+}
+
+
 bool MainFrame::IsDirectoryExists(const char *path)
 {
   struct stat fileStat;
@@ -647,6 +734,23 @@ bool MainFrame::IsDirectoryExists(const char *path)
     return true;
   else
     return false;
+}
+
+bool MainFrame::CreateDirectory(const char *path)
+{
+  //创建文件夹
+  if(mkdir(path,0777)==0)//第一个0表示这里是八进制数
+    {
+      printf("created the directory %s.\n",path);
+      return true;
+    }
+  else
+    {   	  
+      printf("cant't creat the directory %s.\n",path);
+      printf("errno：%d\n",errno);
+      printf("ERR  ：%s\n",strerror(errno));	
+      return false;
+    }
 }
 
 void MainFrame::SetMenuStatus(bool flag,int flagonline)
@@ -668,8 +772,8 @@ void MainFrame::SetMenuStatus(bool flag,int flagonline)
       MenuMonitor->EnableEntry(HISTXDT);
       if(flagonline == 1)
 	MenuMonitor->DisableEntry(READCHANSTATUS);
-	else
-	  MenuMonitor->EnableEntry(READCHANSTATUS);
+      else
+	MenuMonitor->EnableEntry(READCHANSTATUS);
       MenuOffline->EnableEntry(OFFLINEADJUSTPAR);
       MenuOffline->EnableEntry(SIMULATION);
     }
