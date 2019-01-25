@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 日 10月  7 09:35:24 2018 (+0800)
-;; Last-Updated: 一 11月  5 16:38:44 2018 (+0800)
+;; Last-Updated: 五 1月 11 21:16:52 2019 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 8
+;;     Update #: 11
 ;; URL: http://wuhongyi.cn -->
 
 # Trigger Filter
@@ -23,7 +23,6 @@ When the status below the interface is displaying **green Ready**, it means that
 - The parameter Flat Top. . .
 - The parameter Thresh. represents the threshold, which is set relative to the fast filter waveform.
 
-**TODO 这里需要给出不同探测器的推荐值**
 
 
 General rules of thumb for the following important parameters are:
@@ -46,7 +45,7 @@ Digital filtering proceeds from a slightly different perspective. Here the signa
 
 $$V_{x,k}=-\sum_{i(before)}W_{i}V_{i}+\sum_{i(after)}W_{i}V_{i}$$
 
-Where the values of the weighting constants W i determine the type of average being computed. The sums of the values of the two sets of weights must be individually normalized.
+Where the values of the weighting constants Wi determine the type of average being computed. The sums of the values of the two sets of weights must be individually normalized.
 
 **The primary differences between different digital signal processors lie in two areas: what set of weights Wi is used and how the regions are selected for the computation of Equation. **
 
@@ -62,7 +61,7 @@ It implements a fixed length filter with all W i values equal to unity and in fa
 
 $$LV_{x,k}=-\sum_{i=k-2L-G+1}^{k-L-G}V_{i}+\sum_{i=k-L+1}^{k}V_{i}$$
 
-Where the filter length is $$L$$ and the gap is $$G$$. The factor $$L$$ multiplying $$V_{x,k}$$ arises because the sum of the weights here is not normalized. Accommodating this factor is trivial.
+Where the filter length is **L** and the gap is **G**. The factor **L** multiplying $$V_{x,k}$$ arises because the sum of the weights here is not normalized. Accommodating this factor is trivial.
 
 
 While this relationship is very simple, it is still very effective. In the first place, this is the digital equivalent of triangular (or trapezoidal if G ≠ 0) filtering which is the analog industry’s standard for high rate processing. In the second place, one can show theoretically that if the noise in the signal is white (i.e., Gaussian distributed) above and below the step, which is typically the case for the short shaping times used for high signal rate processing, then the average in Equation actually gives the best estimate of Vx in the least squares sense. This, of course, is why triangular filtering has been preferred at high rates.
