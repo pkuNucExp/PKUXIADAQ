@@ -160,7 +160,6 @@ bool Detector::BootSystem()
   for(unsigned short k = 0; k < NumModules; k++)
     {
       PXISlotMap[k] = moduleslot->at(k);
-      ModuleInformation[k].Module_OfflineVariant = OfflineMode;
     }
 
   
@@ -174,6 +173,15 @@ bool Detector::BootSystem()
     }
 
 
+  if(OfflineMode != 0)
+    {
+      for(unsigned short k = 0; k < NumModules; k++)
+	{
+	  ModuleInformation[k].Module_OfflineVariant = OfflineMode;
+	}
+    }
+  
+  
   for(unsigned short k = 0; k < NumModules; k++)
     {
       retval = Pixie16ReadModuleInfo(k, &ModuleInformation[k].Module_Rev, &ModuleInformation[k].Module_SerNum, &ModuleInformation[k].Module_ADCBits, &ModuleInformation[k].Module_ADCMSPS);
@@ -657,7 +665,7 @@ int Detector::StopLSMRun()
       if(counter > 10*NumModules) break;
       sleep(1); // wait 1s then try again  // add 20180504
     }
-  if(counter == 10*NumModules)
+  if(counter >= 10*NumModules)
     {
       std::cout<<" ERROR! Some modules may not End Run correctly!"<<std::endl;
     }
@@ -738,10 +746,11 @@ int Detector::UpdateSharedMemory()
       memcpy(shmptr+SHAREDMEMORYDATAOFFSET+PRESET_MAX_MODULES*2+SHAREDMEMORYDATASTATISTICS*4*i,Statistics,sizeof(unsigned int)*SHAREDMEMORYDATASTATISTICS);
     }
 
-  if(sem_post(shmsem) == -1){
-    std::cout<<"sem_post error!"<<std::endl;
-    return 1;
-  }
+  if(sem_post(shmsem) == -1)
+    {
+      std::cout<<"sem_post error!"<<std::endl;
+      return 1;
+    }
   std::cout<<"SHM updated!"<<std::endl;
   return 0;
 }

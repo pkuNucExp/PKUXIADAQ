@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 日 10月  2 19:01:31 2016 (+0800)
-// Last-Updated: 五 10月 20 16:19:34 2017 (+0800)
+// Last-Updated: 四 1月 31 19:40:24 2019 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 10
+//     Update #: 11
 // URL: http://wuhongyi.cn 
 
 /************************************
@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 {
   if(argc != 2)
     {
-      std::cout<<"error(argc != 2)      "<<argv[0]<<" [RuNnumber]"<<std::endl;
+      std::cout<<"error(argc != 2)      "<<argv[0]<<" [RunNumber]"<<std::endl;
       return 0;
     }
 
