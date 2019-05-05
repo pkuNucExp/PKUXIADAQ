@@ -5,7 +5,7 @@ CrateID 0
 
 ## Register parameters
 
-SettingPars ../parset/LaBr3_BC_111914_2_xia.set
+SettingPars ../parset/ithembanotwave.set
 
 
 ## -----------------------------------------------------------------------------
@@ -13,22 +13,22 @@ SettingPars ../parset/LaBr3_BC_111914_2_xia.set
 
 # module number and slot number
 # The first number mean how many modules, other number means every module slot number
-ModuleSlot 4 2 3 4 5
+ModuleSlot 6 2 3 4 5 6 7
 
 
 # Only use in NOGUI, unit: second
-AutoRunModeTimes   180
+AutoRunModeTimes   1800
 
 ## -----------------------------------------------------------------------------
 ## Offline Mode
 
 # module number and samping rate
 # The first number mean how many modules, other number means every module samping rate(100/250/500)
-ModuleSampingRate 4 250 250 250 250
+ModuleSampingRate 6 100 100 100 100 100 100
 
 # module number and bits
 # The first number mean how many modules, other number means every module bits(12/14/16)
-ModuleBits 4 14 14 14 16
+ModuleBits 6 12 12 12 12 12 12
 
 
 ## -----------------------------------------------------------------------------
@@ -36,12 +36,12 @@ ModuleBits 4 14 14 14 16
 
 ## The user does not modify the following parts
 
-# NoNegEnergy && AlwaysCompEnergy
-100M12bit_sys ../firmware/pixie16_revd_12b100m_firmware_release_10092018/syspixie16_revdgeneral_r33157.bin
-100M12bit_fip ../firmware/pixie16_revd_12b100m_firmware_release_10092018/fippixie16_revdgeneral_r33320.bin
-100M12bit_dsplst ../firmware/pixie16_revd_12b100m_firmware_release_10092018/Pixie16DSP_RevDGeneral_r40804_NoNegEnergy_AlwaysCompEnergy.lst
-100M12bit_dspldr ../firmware/pixie16_revd_12b100m_firmware_release_10092018/Pixie16DSP_RevDGeneral_r40804_NoNegEnergy_AlwaysCompEnergy.ldr
-100M12bit_dspvar ../firmware/pixie16_revd_12b100m_firmware_release_10092018/Pixie16DSP_RevDGeneral_r40804_NoNegEnergy_AlwaysCompEnergy.var
+# standard firmware
+100M12bit_sys ../firmware/pixie16_revd_12b100m_firmware_release/syspixie16_revdgeneral_r33157.bin
+100M12bit_fip ../firmware/pixie16_revd_12b100m_firmware_release/fippixie16_revdgeneral_r32495.bin
+100M12bit_dsplst ../firmware/pixie16_revd_12b100m_firmware_release/Pixie16DSP_revdgeneral_r32777.lst
+100M12bit_dspldr ../firmware/pixie16_revd_12b100m_firmware_release/Pixie16DSP_revdgeneral_r32777.ldr
+100M12bit_dspvar ../firmware/pixie16_revd_12b100m_firmware_release/Pixie16DSP_revdgeneral_r32777.var
 
 # Multiplicity result output from front panel A
 # NoNegEnergy && AlwaysCompEnergy
