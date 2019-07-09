@@ -3,21 +3,22 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Introduction
+
 #################################
 
 .. toctree::
-   :maxdepth: 2
-
+   :maxdepth: 3
+   :caption: Introduction
+      
    README.rst
 
 
-Install
+
 #################################
 
 .. toctree::
-   :maxdepth: 2
-
+   :maxdepth: 3
+   :caption: Install
    
    INSTALL.rst
 
@@ -25,7 +26,7 @@ Install
 #################################
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Users Guide
 	     
    UsersGuide/README.rst
@@ -56,7 +57,7 @@ Install
 #################################
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Programmers Guide
 	     
    ProgrammersGuide/README.rst
