@@ -4,9 +4,9 @@
 .. Author: Hongyi Wu(吴鸿毅)
 .. Email: wuhongyi@qq.com 
 .. Created: 二 7月  2 20:19:34 2019 (+0800)
-.. Last-Updated: 四 8月 22 13:57:51 2019 (+0800)
+.. Last-Updated: 六 9月 21 20:19:36 2019 (+0800)
 ..           By: Hongyi Wu(吴鸿毅)
-..     Update #: 17
+..     Update #: 19
 .. URL: http://wuhongyi.cn 
 
 =================================   
@@ -27,7 +27,7 @@ Version
 Stable Version
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Stable Version Version:2019.08.22**  
+**Stable Version Version:2019.09.08**  
 
 Download the latest version, please click:  `PKUXIADAQ stable <https://github.com/pkuNucExp/PKUXIADAQ>`_ 
 
@@ -42,7 +42,7 @@ For web page manual, please click:  `English <https://pkunucexp.github.io/PKUXIA
 Pre-alpha
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Pre-alpha Version:2019.08.22**  
+**Pre-alpha Version:2019.09.12**  
 
 Download the latest version:  `PKUXIADAQ <https://github.com/wuhongyi/PKUXIADAQ>`_ 
 
@@ -142,8 +142,13 @@ Update plan
 	- JSROOT
 	- ...
 
+---------------------------------  
+License
+---------------------------------
 
-
+..
+   This project is licensed under the MIT License - see the LICENSE.md file for details
+	  
 
 .. 
 .. README.rst ends here
