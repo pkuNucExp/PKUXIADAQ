@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 7月 29 20:39:43 2016 (+0800)
-// Last-Updated: 四 9月 12 15:42:21 2019 (+0800)
+// Last-Updated: 二 9月 24 10:01:52 2019 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 900
+//     Update #: 905
 // URL: http://wuhongyi.cn 
 
 // offlinedata->GetEventWaveLocation()
@@ -744,14 +744,14 @@ void Offline::MakeFold1Panel(TGCompositeFrame *TabPanel)
   oldparFrame->AddFrame(LabelOldSlowFilterSL, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 2, 5, 0));
   fClient->GetColorByName("green", color);
   LabelOldSlowFilterSL->SetTextColor(color, false);
-  oldslowfilterparameter[0] = new TGNumberEntryField(oldparFrame, -1, 3.04, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.04,81.28);
+  oldslowfilterparameter[0] = new TGNumberEntryField(oldparFrame, -1, 3.040, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.032,81.280);
   oldparFrame->AddFrame(oldslowfilterparameter[0], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 0, 2, 0));
   oldslowfilterparameter[0]->Resize(40, 20);
   TGLabel *LabelOldSlowFilterSG = new TGLabel(oldparFrame,"SGap:");
   oldparFrame->AddFrame(LabelOldSlowFilterSG, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 2, 5, 0));
   fClient->GetColorByName("green", color);
   LabelOldSlowFilterSG->SetTextColor(color, false);
-  oldslowfilterparameter[1] = new TGNumberEntryField(oldparFrame, -1, 0.64, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.06,81.28);
+  oldslowfilterparameter[1] = new TGNumberEntryField(oldparFrame, -1, 0.640, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.048,81.280);
   oldparFrame->AddFrame(oldslowfilterparameter[1], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 0, 2, 0));
   oldslowfilterparameter[1]->Resize(40, 20);
   TGLabel *LabelOldSlowFilterTAU = new TGLabel(oldparFrame,"Tau:");
@@ -1422,14 +1422,14 @@ void Offline::MakeFold6Panel(TGCompositeFrame *TabPanel)
   slowfilterparFrame->AddFrame(LabelOldSlowFilterSL, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 2, 5, 0));
   fClient->GetColorByName("green", color);
   LabelOldSlowFilterSL->SetTextColor(color, false);
-  oldslowfilterparameterp6[0] = new TGNumberEntryField(slowfilterparFrame, -1, 3.04, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.04,81.28);
+  oldslowfilterparameterp6[0] = new TGNumberEntryField(slowfilterparFrame, -1, 3.040, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.032,81.280);
   slowfilterparFrame->AddFrame(oldslowfilterparameterp6[0], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 0, 2, 0));
   oldslowfilterparameterp6[0]->Resize(40, 20);
   TGLabel *LabelOldSlowFilterSG = new TGLabel(slowfilterparFrame,"SG:");
   slowfilterparFrame->AddFrame(LabelOldSlowFilterSG, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 2, 5, 0));
   fClient->GetColorByName("green", color);
   LabelOldSlowFilterSG->SetTextColor(color, false);
-  oldslowfilterparameterp6[1] = new TGNumberEntryField(slowfilterparFrame, -1, 0.64, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.06,81.28);
+  oldslowfilterparameterp6[1] = new TGNumberEntryField(slowfilterparFrame, -1, 0.640, TGNumberFormat::kNESReal,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0.048,81.280);
   slowfilterparFrame->AddFrame(oldslowfilterparameterp6[1], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 0, 2, 0));
   oldslowfilterparameterp6[1]->Resize(40, 20);
   TGLabel *LabelOldSlowFilterTAU = new TGLabel(slowfilterparFrame,"Tau:");
@@ -2889,13 +2889,13 @@ void Offline::Panel1Draw()
 
   if(chooseslowfilterbaseline->GetSelected() == 0)
     {
-      retval = Pixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum->GetIntNumber(), offlinedata->GetEventWaveLocation(OfflineCurrentCount), tracelength, RcdTrace,doubleslowfilter );//trace length/trace location
-      if(retval < 0) ErrorInfo("Offline.cc", "Panel1Draw()", "Pixie16ComputeSlowFiltersOffline", retval);
+      retval = HongyiWuPixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum->GetIntNumber(), offlinedata->GetEventWaveLocation(OfflineCurrentCount), tracelength, RcdTrace,doubleslowfilter );//trace length/trace location
+      if(retval < 0) ErrorInfo("Offline.cc", "Panel1Draw()", "HongyiWuPixie16ComputeSlowFiltersOffline", retval);
     }
   else
     {
-      retval = HongyiWuPixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum->GetIntNumber(), offlinedata->GetEventWaveLocation(OfflineCurrentCount), tracelength, RcdTrace,doubleslowfilter ,offlinedata->GetEventSUMS4(OfflineCurrentCount,3),oldslowfilterparameter[0]->GetNumber(),oldslowfilterparameter[1]->GetNumber(),oldslowfilterparameter[2]->GetNumber(),oldofflinefilterrange->GetIntNumber(),200);//trace length/trace location
-      if(retval < 0) ErrorInfo("Offline.cc", "Panel1Draw()", "HongyiWuPixie16ComputeSlowFiltersOffline", retval);
+      retval = HongyiWuPixie16ComputeSlowFiltersOfflineExtendBaseline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum->GetIntNumber(), offlinedata->GetEventWaveLocation(OfflineCurrentCount), tracelength, RcdTrace,doubleslowfilter ,offlinedata->GetEventSUMS4(OfflineCurrentCount,3),oldslowfilterparameter[0]->GetNumber(),oldslowfilterparameter[1]->GetNumber(),oldslowfilterparameter[2]->GetNumber(),oldofflinefilterrange->GetIntNumber(),200);//trace length/trace location
+      if(retval < 0) ErrorInfo("Offline.cc", "Panel1Draw()", "HongyiWuPixie16ComputeSlowFiltersOfflineExtendBaseline", retval);
     }
   
 
@@ -3128,8 +3128,8 @@ void Offline::Panel2Draw()
 
 	  retval = HongyiWuPixie16ComputeFastFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)i, offlinedata->GetEventWaveLocation(OfflineCurrentCount2[i]), tracelength2[i], RcdTrace2[i], doublefastfilter2[i], doublecfd2[i], doublecfds2[i]);//trace location
 	  if(retval < 0) ErrorInfo("Offline.cc", "Panel2Draw()", "HongyiWuPixie16ComputeFastFiltersOffline", retval);
-	  retval = Pixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)i, offlinedata->GetEventWaveLocation(OfflineCurrentCount2[i]), tracelength2[i], RcdTrace2[i],doubleslowfilter2[i]);//trace localtion
-	  if(retval < 0) ErrorInfo("Offline.cc", "Panel2Draw()", "Pixie16ComputeSlowFiltersOffline", retval);
+	  retval = HongyiWuPixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)i, offlinedata->GetEventWaveLocation(OfflineCurrentCount2[i]), tracelength2[i], RcdTrace2[i],doubleslowfilter2[i]);//trace localtion
+	  if(retval < 0) ErrorInfo("Offline.cc", "Panel2Draw()", "HongyiWuPixie16ComputeSlowFiltersOffline", retval);
 	  
 	  double ChanParData;
 	  retval = Pixie16ReadSglChanPar((char*)"TRIGGER_THRESHOLD", &ChanParData, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)i);
@@ -3713,30 +3713,31 @@ void Offline::Panel6Draw()
 	}
 
       int intflagenergy;
-      switch(SlowFilterRange)
-	{
-	case 1:
-	  intflagenergy = SlowLen+SlowGap-3;
-	  break;
-	case 2:
-	  intflagenergy = SlowLen+SlowGap-2;
-	  break;
-	case 3:
-	  intflagenergy = SlowLen+SlowGap-2;
-	  break;
-	case 4:
-	  intflagenergy = SlowLen+SlowGap-1;
-	  break;
-	case 5:
-	  intflagenergy = SlowLen+SlowGap;
-	  break;
-	case 6:
-	  intflagenergy = SlowLen+SlowGap+1;
-	  break;
-	default:
-	  intflagenergy = SlowLen+SlowGap-2;
-	  break;
-	}
+      intflagenergy = SlowLen+SlowGap-1;
+      // switch(SlowFilterRange)
+      // 	{
+      // 	case 1:
+      // 	  intflagenergy = SlowLen+SlowGap-3;
+      // 	  break;
+      // 	case 2:
+      // 	  intflagenergy = SlowLen+SlowGap-2;
+      // 	  break;
+      // 	case 3:
+      // 	  intflagenergy = SlowLen+SlowGap-2;
+      // 	  break;
+      // 	case 4:
+      // 	  intflagenergy = SlowLen+SlowGap-1;
+      // 	  break;
+      // 	case 5:
+      // 	  intflagenergy = SlowLen+SlowGap;
+      // 	  break;
+      // 	case 6:
+      // 	  intflagenergy = SlowLen+SlowGap+1;
+      // 	  break;
+      // 	default:
+      // 	  intflagenergy = SlowLen+SlowGap-2;
+      // 	  break;
+      // 	}
 
       
       for (unsigned int i = 0; i < OfflineModuleEventsCount; ++i)
@@ -3758,13 +3759,13 @@ void Offline::Panel6Draw()
 
 	      if(chooseslowfilterbaselinep6->GetSelected() == 0)
 		{
-		  retval = Pixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum6->GetIntNumber(), offlinedata->GetEventWaveLocation(i), offlinedata->GetEventTraceLength(i), RcdTrace6,doubleslowfilter6);//trace location/trace length
-		  if(retval < 0) ErrorInfo("Offline.cc", "Panel6Draw()", "Pixie16ComputeSlowFiltersOffline", retval);
+		  retval = HongyiWuPixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum6->GetIntNumber(), offlinedata->GetEventWaveLocation(i), offlinedata->GetEventTraceLength(i), RcdTrace6,doubleslowfilter6);//trace location/trace length
+		  if(retval < 0) ErrorInfo("Offline.cc", "Panel6Draw()", "HongyiWuPixie16ComputeSlowFiltersOffline", retval);
 		}
 	      else
 		{
-		  retval = HongyiWuPixie16ComputeSlowFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum6->GetIntNumber(), offlinedata->GetEventWaveLocation(i), offlinedata->GetEventTraceLength(i), RcdTrace6,doubleslowfilter6, offlinedata->GetEventSUMS4(i,3),oldslowfilterparameterp6[0]->GetNumber(),oldslowfilterparameterp6[1]->GetNumber(),oldslowfilterparameterp6[2]->GetNumber(),oldofflinefilterrangep6->GetIntNumber(),200);//trace location/trace length
-		  if(retval < 0) ErrorInfo("Offline.cc", "Panel6Draw()", "HongyiWuPixie16ComputeSlowFiltersOffline", retval);
+		  retval = HongyiWuPixie16ComputeSlowFiltersOfflineExtendBaseline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short) offlinechnum6->GetIntNumber(), offlinedata->GetEventWaveLocation(i), offlinedata->GetEventTraceLength(i), RcdTrace6,doubleslowfilter6, offlinedata->GetEventSUMS4(i,3),oldslowfilterparameterp6[0]->GetNumber(),oldslowfilterparameterp6[1]->GetNumber(),oldslowfilterparameterp6[2]->GetNumber(),oldofflinefilterrangep6->GetIntNumber(),200);//trace location/trace length
+		  if(retval < 0) ErrorInfo("Offline.cc", "Panel6Draw()", "HongyiWuPixie16ComputeSlowFiltersOfflineExtendBaseline", retval);
 		}
 	      
 	      int intflagtrigger = -1;

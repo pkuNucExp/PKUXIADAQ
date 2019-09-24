@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 六 6月 18 13:37:42 2016 (+0800)
-;; Last-Updated: 六 9月 21 20:43:41 2019 (+0800)
+;; Last-Updated: 二 9月 24 17:00:36 2019 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 130
+;;     Update #: 133
 ;; URL: http://wuhongyi.cn -->
 
 # README
@@ -25,11 +25,11 @@ English | [简体中文](https://github.com/pkuNucExp/PKUXIADAQ/blob/master/READ
 
 ### Stable Version
 
-**Stable Version Version:2019.09.12**  
+**Stable Version Version:2019.09.24**  
 
 Download the latest version, please click:  [PKUXIADAQ stable](https://github.com/pkuNucExp/PKUXIADAQ)
 
-For web page manual, please click:  [English](https://pkunucexp.github.io/PKUXIADAQ/en/)    [简体中文](https://pkunucexp.github.io/PKUXIADAQ/zh/)
+For web page manual, please click:  [English/简体中文](https://pkunucexp.github.io/PKUXIADAQ/)
 
 - manual version in markdown: README/  
 - manual version in offline web: docs/  
@@ -38,12 +38,11 @@ For web page manual, please click:  [English](https://pkunucexp.github.io/PKUXIA
 
 ### Pre-alpha
 
-**Pre-alpha Version:2019.09.12**  
+**Pre-alpha Version:2019.09.24**  
 
 Download the latest version:  [PKUXIADAQ](https://github.com/wuhongyi/PKUXIADAQ)
 
-manual version in web page:  [English](http://wuhongyi.cn/PKUXIADAQ/en/)   [简体中文](http://wuhongyi.cn/PKUXIADAQ/zh/)
-
+manual version in web page:  [简体中文/English](http://wuhongyi.cn/PKUXIADAQ/)
 
 
 - If you have any comments or suggestions for this project(function addition or improvement), please send an email to Hongyi Wu(wuhongyi@qq.com). 
