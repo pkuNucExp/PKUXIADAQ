@@ -37,7 +37,6 @@ protected:
 
   TGHorizontalFrame *StatusFrame;
   TGTextEntry *userstatus;
-  Pixel_t color;
   
   int numModules;
   TGNumberEntry *numericMod;
@@ -53,7 +52,6 @@ protected:
       COPYBUTTON,
       FINDTAU
     };
-
 };
 
 #endif /*TABLE_HH_*/

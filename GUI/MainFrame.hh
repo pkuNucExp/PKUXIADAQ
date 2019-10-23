@@ -4,16 +4,13 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 3月  9 13:01:17 2018 (+0800)
-// Last-Updated: 六 10月 12 22:11:32 2019 (+0800)
+// Last-Updated: 一 10月 21 21:31:00 2019 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 32
+//     Update #: 56
 // URL: http://wuhongyi.cn 
 
 #ifndef MAINFRAME_HH_
 #define MAINFRAME_HH_
-
-#define INITIAL_HIGHT 850
-#define INITIAL_WIDTH 300
 
 #include "Global.hh"
 #include "Base.hh"
@@ -43,6 +40,7 @@
 #include "TGNumberEntry.h"
 #include "TGLabel.h"
 #include "TGraph.h"
+#include "TGSplitter.h"
 #include "TGStatusBar.h"
 #include "TGTab.h"
 #include "TGTextEntry.h"
@@ -121,14 +119,13 @@ private:
   Offline *popupoffline;
   Simulation *simulation;
 
-  Pixel_t color;
   Detector *detector;
 
   virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t);//process message queue
   void CloseWindow(); //close main window
   void CreateMenuBar(void); //creates menu bar of the main window
 
-  void MakeFold2Panel(TGCompositeFrame *TabPanel);
+  void ControlPanel(TGCompositeFrame *TabPanel);
 
   void save_setup(char *name);
 
