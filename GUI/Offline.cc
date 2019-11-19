@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 7月 29 20:39:43 2016 (+0800)
-// Last-Updated: 三 10月 23 11:00:53 2019 (+0800)
+// Last-Updated: 二 11月 19 15:40:50 2019 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 995
+//     Update #: 1045
 // URL: http://wuhongyi.cn 
 
 // offlinedata->GetEventWaveLocation()
@@ -56,6 +56,7 @@
 #include "pixie16sys_export.h"
 #include "xia_common.h"
 
+#include "TLegend.h"
 #include "TGTab.h"
 #include "TString.h"
 #include "TFitResultPtr.h"
@@ -99,6 +100,9 @@ Offline::Offline(const TGWindow * p, const TGWindow * main,Detector *det,TGTextE
   chanNumberB10 = 0;
   chanNumber11 = 0;
   chanNumber12 = 0;
+  chanNumberA13 = 0;
+  chanNumberB13 = 0;
+  chanNumber14 = 0;
   fileRunNum = 0;
 
   adjustdslider = false;
@@ -191,6 +195,7 @@ Offline::Offline(const TGWindow * p, const TGWindow * main,Detector *det,TGTextE
   OfflineCurrentCount9 = -1;
 
   offlineth1i10 = NULL;
+  falggausfit10 = false;
   
   offlineth1icfdinvalid11 = NULL;
   offlineth1icfdvalid11 = NULL; 
@@ -202,6 +207,13 @@ Offline::Offline(const TGWindow * p, const TGWindow * main,Detector *det,TGTextE
   offlineth1itraceevent12 = NULL;    
   offlineth1iwithoutteaceevent12 = NULL;    
 
+  for (int i = 0; i < 8; ++i)
+    for (int j = 0; j < 64; ++j)
+      offlineth1i13[i][j] = NULL;
+
+  RcdTrace14 = NULL;
+  doublefastfilter14 = NULL;
+  offlineth1i14 = NULL;
   
   //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
   
@@ -248,6 +260,16 @@ Offline::Offline(const TGWindow * p, const TGWindow * main,Detector *det,TGTextE
   MakeFold8Panel(Tab8);
   Tab8->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
 
+  TGCompositeFrame *Tab13 = TabPanel->AddTab("CFD D/F");
+  TabPanel->GetTabTab("CFD D/F")->ChangeBackground(TColor::RGB2Pixel(TAB_BG_R,TAB_BG_G,TAB_BG_B));
+  MakeFold13Panel(Tab13);
+  Tab13->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+
+  TGCompositeFrame *Tab14 = TabPanel->AddTab("CFD Frac");
+  TabPanel->GetTabTab("CFD Frac")->ChangeBackground(TColor::RGB2Pixel(TAB_BG_R,TAB_BG_G,TAB_BG_B));
+  MakeFold14Panel(Tab14);
+  Tab14->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  
   TGCompositeFrame *Tab11 = TabPanel->AddTab("Energy-CFD");
   TabPanel->GetTabTab("Energy-CFD")->ChangeBackground(TColor::RGB2Pixel(TAB_BG_R,TAB_BG_G,TAB_BG_B));
   MakeFold11Panel(Tab11);
@@ -336,6 +358,14 @@ Offline::~Offline()
   if(offlineth1igoogevent12 != NULL) delete offlineth1igoogevent12;
   if(offlineth1itraceevent12 != NULL) delete offlineth1itraceevent12;
   if(offlineth1iwithoutteaceevent12 != NULL) delete offlineth1iwithoutteaceevent12;
+
+  for (int i = 0; i < 8; ++i)
+    for (int j = 0; j < 64; ++j)
+      if(offlineth1i13[i][j] != NULL) delete offlineth1i13[i][j];
+
+  if(RcdTrace14 != NULL) delete []RcdTrace14;
+  if(doublefastfilter14 != NULL) delete []doublefastfilter14;
+  if(offlineth1i14 != NULL) delete offlineth1i14;
   
   for (int i = 0; i < 16; ++i)
     {
@@ -1340,6 +1370,24 @@ void Offline::GausFit6()
     }
 }
 
+void Offline::GausFit10()
+{
+  if(falggausfit10)
+    {
+      GausFitButton10->SetText("Open  Fit");
+      falggausfit10 = false;
+      canvas10->DeleteExec("dynamicPanel10GausFit");
+    }
+  else
+    {
+      GausFitButton10->SetText("Close Fit");
+      falggausfit10 = true;
+      canvas10->AddExec("dynamicPanel10GausFit","PanelTimeGausFit()");
+    }
+}
+
+
+
 void PanelGausFit()
 {
   // TODO  可以加显示选择的线
@@ -1384,7 +1432,49 @@ void PanelGausFit()
     }
 }
 
-  
+
+void PanelTimeGausFit()
+{
+  // TODO  可以加显示选择的线
+  int pe = gPad->GetEvent();
+  if(pe != 11) return;
+  gPad->GetCanvas()->FeedbackMode(kTRUE);
+
+  if(gPad->GetUniqueID() == 0)
+    {
+      gPad->SetUniqueID(gPad->GetEventX());
+    }
+  else
+    {
+      int pxold = gPad->GetUniqueID();
+      Float_t upxold = gPad->AbsPixeltoX(pxold);
+      int px = gPad->GetEventX();
+      Float_t upx = gPad->AbsPixeltoX(px);
+
+      TObject *select = gPad->GetSelected();
+      if(!select) {gPad->SetUniqueID(0); return;}
+      if (!select->InheritsFrom(TH1::Class())) {gPad->SetUniqueID(0); return;}
+      TH1 *h = (TH1*)select;					      
+      if(upxold > upx)
+	{
+	  Float_t temp;
+	  temp = upxold;
+	  upxold = upx;
+	  upx = temp;
+	}
+      if(h->Fit("gaus","QL","",upxold,upx) == 0)
+	{
+	  h->SetTitle(TString::Format("FWHM:  %0.2f ps",h->GetFunction("gaus")->GetParameter(2)*2.355*1000).Data());
+	}
+      else
+	{
+	  h->SetTitle("Please choose Fit range again.");
+	}
+      gPad->SetUniqueID(0);
+    }
+}
+
+
 void Offline::MakeFold5Panel(TGCompositeFrame *TabPanel)
 {
   TGCompositeFrame *parFrame = new TGCompositeFrame(TabPanel, 0, 0, kHorizontalFrame);
@@ -1990,6 +2080,17 @@ void Offline::MakeFold10Panel(TGCompositeFrame *TabPanel)
   printtextinfor10->SetFrameDrawn(kFALSE);
   printtextinfor10->ChangeBackground(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
 
+  // Fit
+  GausFitButton10 = new TGTextButton(parFrame, "Open  Fit", OFFLINEGAUSFIT10);
+  parFrame->AddFrame(GausFitButton10, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 30, 0, 0));
+  GausFitButton10->SetEnabled(0);
+  GausFitButton10->Associate(this);
+  GausFitButton10->ChangeOptions(GausFitButton10->GetOptions() ^ kRaisedFrame);
+  GausFitButton10->SetFont(TEXTBUTTONSMALL_FONT, false);
+  GausFitButton10->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
+  GausFitButton10->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));
+
+  
   //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
   // Draw Style
@@ -2245,8 +2346,239 @@ void Offline::MakeFold12Panel(TGCompositeFrame *TabPanel)
   canvas12 = adjCanvas->GetCanvas();
 }
 
+void Offline::MakeFold13Panel(TGCompositeFrame *TabPanel)
+{
+  TGCompositeFrame *parFrame = new TGCompositeFrame(TabPanel, 0, 0, kHorizontalFrame);
+  TabPanel->AddFrame(parFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 4, 4, 4, 4));
+  parFrame->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+
+  // draw
+  OfflineDrawButton13 = new TGTextButton(parFrame, "&Draw", OFFLINEDRAW13);
+  parFrame->AddFrame(OfflineDrawButton13, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 30, 0, 0));
+  OfflineDrawButton13->SetEnabled(0);
+  OfflineDrawButton13->Associate(this);
+  OfflineDrawButton13->ChangeOptions(OfflineDrawButton13->GetOptions() ^ kRaisedFrame);
+  OfflineDrawButton13->SetFont(TEXTBUTTONSMALL_FONT, false);
+  OfflineDrawButton13->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
+  OfflineDrawButton13->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));	
 
 
+  // ch
+  offlinechnumB13 = new TGNumberEntry(parFrame, 0, 2, OFFLINECHNUMB13, (TGNumberFormat::EStyle) 0, (TGNumberFormat::EAttribute) 1, (TGNumberFormat::ELimit) 3, 0, 15);
+  parFrame->AddFrame(offlinechnumB13, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 10, 0, 0));
+  offlinechnumB13->SetButtonToNum(0);
+  offlinechnumB13->Associate(this);
+  offlinechnumB13->GetNumberEntry()->ChangeOptions(offlinechnumB13->GetNumberEntry()->GetOptions() ^ kRaisedFrame);
+  offlinechnumB13->GetNumberEntry()->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B), false);
+  offlinechnumB13->GetButtonUp()->ChangeOptions(offlinechnumB13->GetButtonUp()->GetOptions() ^ kRaisedFrame);
+  offlinechnumB13->GetButtonDown()->ChangeOptions(offlinechnumB13->GetButtonDown()->GetOptions() ^ kRaisedFrame);
+  offlinechnumB13->ChangeSubframesBackground(TColor::RGB2Pixel(TEXTENTRY_BG_R,TEXTENTRY_BG_G,TEXTENTRY_BG_B));
+  
+  TGLabel *chB = new TGLabel(parFrame, "Ch B:"); 
+  parFrame->AddFrame(chB, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 2, 3, 0)); 
+  chB->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  chB->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));  
+  
+  offlinechnumA13 = new TGNumberEntry(parFrame, 0, 2, OFFLINECHNUMA13, (TGNumberFormat::EStyle) 0, (TGNumberFormat::EAttribute) 1, (TGNumberFormat::ELimit) 3, 0, 15);
+  parFrame->AddFrame(offlinechnumA13, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 10, 0, 0));
+  offlinechnumA13->SetButtonToNum(0);
+  offlinechnumA13->Associate(this);
+  offlinechnumA13->GetNumberEntry()->ChangeOptions(offlinechnumA13->GetNumberEntry()->GetOptions() ^ kRaisedFrame);
+  offlinechnumA13->GetNumberEntry()->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B), false);
+  offlinechnumA13->GetButtonUp()->ChangeOptions(offlinechnumA13->GetButtonUp()->GetOptions() ^ kRaisedFrame);
+  offlinechnumA13->GetButtonDown()->ChangeOptions(offlinechnumA13->GetButtonDown()->GetOptions() ^ kRaisedFrame);
+  offlinechnumA13->ChangeSubframesBackground(TColor::RGB2Pixel(TEXTENTRY_BG_R,TEXTENTRY_BG_G,TEXTENTRY_BG_B));
+  
+  TGLabel *chA = new TGLabel(parFrame, "Ch A:"); 
+  parFrame->AddFrame(chA, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 2, 3, 0));
+  chA->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  chA->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));  
+
+
+  choosedelay13 = new TGComboBox(parFrame);
+  parFrame->AddFrame(choosedelay13, new TGLayoutHints(kLHintsRight, 0, 20, 0, 0));
+  choosedelay13->Resize(100, 20);
+  choosedelay13->AddEntry("Delay 1-5", 5);
+  choosedelay13->AddEntry("Delay 1-10", 10);
+  choosedelay13->AddEntry("Delay 1-15", 15);
+  choosedelay13->AddEntry("Delay 1-20", 20);
+  choosedelay13->Select(5);
+    
+  // stop
+  OfflineStopButton13 = new TGTextButton(parFrame, "&Stop", OFFLINESTOPDRAW13);
+  parFrame->AddFrame(OfflineStopButton13, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 10, 0, 0));
+  OfflineStopButton13->SetEnabled(0);
+  OfflineStopButton13->Associate(this);
+  OfflineStopButton13->ChangeOptions(OfflineStopButton13->GetOptions() ^ kRaisedFrame);
+  OfflineStopButton13->SetFont(TEXTBUTTONSMALL_FONT, false);
+  OfflineStopButton13->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
+  OfflineStopButton13->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));
+
+  
+  // text
+  printtextinfor13 = new TGTextEntry(parFrame,new TGTextBuffer(30), 10000);
+  parFrame->AddFrame(printtextinfor13, new TGLayoutHints(kLHintsLeft | kLHintsTop, 10, 0, 6, 0));
+  printtextinfor13->SetFont("-adobe-helvetica-bold-r-*-*-14-*-*-*-*-*-iso8859-1", false);
+  printtextinfor13->SetTextColor(TColor::RGB2Pixel(COLOR_DODERBLUE_R,COLOR_DODERBLUE_G,COLOR_DODERBLUE_B), false);
+  printtextinfor13->SetText("Choose 'Ch A' and 'Ch B', enter button 'Draw'.");
+  printtextinfor13->Resize(350, 12);
+  printtextinfor13->SetEnabled(kFALSE);
+  printtextinfor13->SetFrameDrawn(kFALSE);
+  printtextinfor13->ChangeBackground(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+
+  // style
+
+    
+  TGLabel *LabelChooseHistXbin = new TGLabel(parFrame,"Xbin:");
+  parFrame->AddFrame(LabelChooseHistXbin, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelChooseHistXbin->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  LabelChooseHistXbin->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
+  
+  histxminmax13[0] = new TGNumberEntryField(parFrame, -1, 10000, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,1,100000);
+  parFrame->AddFrame(histxminmax13[0], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  histxminmax13[0]->Resize(50, 20);
+  
+  TGLabel *LabelChooseHistXmin = new TGLabel(parFrame,"Xmin(ns):");
+  parFrame->AddFrame(LabelChooseHistXmin, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelChooseHistXmin->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  LabelChooseHistXmin->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
+  
+  histxminmax13[1] = new TGNumberEntryField(parFrame, -1, -100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-500,500);
+  parFrame->AddFrame(histxminmax13[1], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  histxminmax13[1]->Resize(40, 20);
+  
+  TGLabel *LabelChooseHistXmax = new TGLabel(parFrame,"Xmax(ns):");
+  parFrame->AddFrame(LabelChooseHistXmax, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelChooseHistXmax->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  LabelChooseHistXmax->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
+  
+  histxminmax13[2] = new TGNumberEntryField(parFrame, -1, 100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-500,500);
+  parFrame->AddFrame(histxminmax13[2], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  histxminmax13[2]->Resize(40, 20);  
+
+
+
+  
+  offlineenergylimit13 = new TGCheckButton(parFrame, "Limits");
+  parFrame->AddFrame(offlineenergylimit13, new TGLayoutHints(kLHintsLeft | kLHintsTop, 35, 5, 5, 0));
+  offlineenergylimit13->SetOn(kFALSE);
+  offlineenergylimit13->SetTextColor(TColor::RGB2Pixel(COLOR_GREEN_R,COLOR_GREEN_G,COLOR_GREEN_B), false);
+  offlineenergylimit13->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+
+
+  TGLabel *LabelELimits0 = new TGLabel(parFrame,"AL:");
+  parFrame->AddFrame(LabelELimits0, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelELimits0->SetTextColor(TColor::RGB2Pixel(COLOR_GREEN_R,COLOR_GREEN_G,COLOR_GREEN_B), false);
+  LabelELimits0->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  
+  energylimitsab13[0] = new TGNumberEntryField(parFrame, -1, 0, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0,65536);
+  parFrame->AddFrame(energylimitsab13[0], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  energylimitsab13[0]->Resize(40, 20);
+
+  TGLabel *LabelELimits1 = new TGLabel(parFrame,"AR:");
+  parFrame->AddFrame(LabelELimits1, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelELimits1->SetTextColor(TColor::RGB2Pixel(COLOR_GREEN_R,COLOR_GREEN_G,COLOR_GREEN_B), false);
+  LabelELimits1->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  
+  energylimitsab13[1] = new TGNumberEntryField(parFrame, -1, 65536, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0,65536);
+  parFrame->AddFrame(energylimitsab13[1], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  energylimitsab13[1]->Resize(40, 20);
+
+  TGLabel *LabelELimits2 = new TGLabel(parFrame,"BL:");
+  parFrame->AddFrame(LabelELimits2, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelELimits2->SetTextColor(TColor::RGB2Pixel(COLOR_GREEN_R,COLOR_GREEN_G,COLOR_GREEN_B), false);
+  LabelELimits2->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  
+  energylimitsab13[2] = new TGNumberEntryField(parFrame, -1, 0, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0,65536);
+  parFrame->AddFrame(energylimitsab13[2], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  energylimitsab13[2]->Resize(40, 20);
+  
+  TGLabel *LabelELimits3 = new TGLabel(parFrame,"BR:");
+  parFrame->AddFrame(LabelELimits3, new TGLayoutHints(kLHintsLeft | kLHintsTop, 3, 2, 5, 0));
+  LabelELimits3->SetTextColor(TColor::RGB2Pixel(COLOR_GREEN_R,COLOR_GREEN_G,COLOR_GREEN_B), false);
+  LabelELimits3->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  
+  energylimitsab13[3] = new TGNumberEntryField(parFrame, -1, 65536, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,0,65536);
+  parFrame->AddFrame(energylimitsab13[3], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
+  energylimitsab13[3]->Resize(40, 20);
+  
+  
+  
+
+  //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+  
+  TGCompositeFrame *adCanvasFrame = new TGCompositeFrame(TabPanel, 800, 800, kHorizontalFrame);
+  TabPanel->AddFrame(adCanvasFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 4, 4, 0, 4));
+
+  TRootEmbeddedCanvas *adjCanvas = new TRootEmbeddedCanvas("canvas13", adCanvasFrame, 100, 100);
+  adCanvasFrame->AddFrame(adjCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 0, 0));
+  canvas13 = adjCanvas->GetCanvas();
+}
+
+void Offline::MakeFold14Panel(TGCompositeFrame *TabPanel)
+{
+  TGCompositeFrame *parFrame = new TGCompositeFrame(TabPanel, 0, 0, kHorizontalFrame);
+  TabPanel->AddFrame(parFrame, new TGLayoutHints(kLHintsLeft | kLHintsExpandX, 4, 4, 4, 4));
+  parFrame->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+
+  // stop
+  OfflineStopButton14 = new TGTextButton(parFrame, "&Stop", OFFLINESTOPDRAW14);
+  parFrame->AddFrame(OfflineStopButton14, new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 10, 0, 0));
+  OfflineStopButton14->SetEnabled(0);
+  OfflineStopButton14->Associate(this);
+  OfflineStopButton14->ChangeOptions(OfflineStopButton14->GetOptions() ^ kRaisedFrame);
+  OfflineStopButton14->SetFont(TEXTBUTTONSMALL_FONT, false);
+  OfflineStopButton14->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
+  OfflineStopButton14->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));
+
+  // text
+  printtextinfor14 = new TGTextEntry(parFrame,new TGTextBuffer(30), 10000);
+  parFrame->AddFrame(printtextinfor14, new TGLayoutHints(kLHintsLeft | kLHintsTop, 10, 0, 3, 0));
+  printtextinfor14->SetFont("-adobe-helvetica-bold-r-*-*-14-*-*-*-*-*-iso8859-1", false);
+  printtextinfor14->SetTextColor(TColor::RGB2Pixel(COLOR_DODERBLUE_R,COLOR_DODERBLUE_G,COLOR_DODERBLUE_B), false);
+  printtextinfor14->SetText("Choose 'Ch' then enter button 'Draw'.");
+  printtextinfor14->Resize(500, 12);
+  printtextinfor14->SetEnabled(kFALSE);
+  printtextinfor14->SetFrameDrawn(kFALSE);
+  printtextinfor14->ChangeBackground(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));  
+
+  // draw
+  OfflineDrawButton14 = new TGTextButton(parFrame, "&Draw", OFFLINEDRAW14);
+  parFrame->AddFrame(OfflineDrawButton14, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 30, 0, 0));
+  OfflineDrawButton14->SetEnabled(0);
+  OfflineDrawButton14->Associate(this);
+  OfflineDrawButton14->ChangeOptions(OfflineDrawButton14->GetOptions() ^ kRaisedFrame);
+  OfflineDrawButton14->SetFont(TEXTBUTTONSMALL_FONT, false);
+  OfflineDrawButton14->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
+  OfflineDrawButton14->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));
+
+  // ch
+  offlinechnum14 = new TGNumberEntry (parFrame, 0, 2, OFFLINECHNUM14, (TGNumberFormat::EStyle) 0, (TGNumberFormat::EAttribute) 1, (TGNumberFormat::ELimit) 3, 0, 15);
+  parFrame->AddFrame(offlinechnum14, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 10, 0, 0));
+  offlinechnum14->SetButtonToNum(0);
+  offlinechnum14->Associate(this);
+  offlinechnum14->GetNumberEntry()->ChangeOptions(offlinechnum14->GetNumberEntry()->GetOptions() ^ kRaisedFrame);
+  offlinechnum14->GetNumberEntry()->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B), false);
+  offlinechnum14->GetButtonUp()->ChangeOptions(offlinechnum14->GetButtonUp()->GetOptions() ^ kRaisedFrame);
+  offlinechnum14->GetButtonDown()->ChangeOptions(offlinechnum14->GetButtonDown()->GetOptions() ^ kRaisedFrame);
+  offlinechnum14->ChangeSubframesBackground(TColor::RGB2Pixel(TEXTENTRY_BG_R,TEXTENTRY_BG_G,TEXTENTRY_BG_B));
+  
+  TGLabel *ch = new TGLabel(parFrame, "Ch:"); 
+  parFrame->AddFrame(ch, new TGLayoutHints(kLHintsRight | kLHintsTop, 1, 2, 3, 0));
+  ch->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  ch->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));  
+
+  
+  //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+  
+  TGCompositeFrame *adCanvasFrame = new TGCompositeFrame(TabPanel, 800, 800, kHorizontalFrame);
+  TabPanel->AddFrame(adCanvasFrame, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 4, 4, 0, 4));
+
+  TRootEmbeddedCanvas *adjCanvas = new TRootEmbeddedCanvas("canvas14", adCanvasFrame, 100, 100);
+  adCanvasFrame->AddFrame(adjCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 0, 0, 0, 0));
+  canvas14 = adjCanvas->GetCanvas();
+}
+  
 Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   int test1 = 0, test2 = 0;
@@ -2339,6 +2671,13 @@ Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    case OFFLINEDRAW12:
 	      Panel12Draw();
 	      break;
+	    case OFFLINEDRAW13:
+	      Panel13Draw();
+	      break;
+	    case OFFLINEDRAW14:
+	      Panel14Draw();
+	      break;
+
 	      
 	    case OFFLINEGAUSFIT4:
 	      GausFit4();
@@ -2346,7 +2685,11 @@ Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    case OFFLINEGAUSFIT6:
 	      GausFit6();
 	      break;
+	    case OFFLINEGAUSFIT10:
+	      GausFit10();
+	      break;
 
+	      
 	    case OFFLINESTOPDRAW5:
 	      Panel5StopDraw();
 	      break;
@@ -2356,6 +2699,12 @@ Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    case OFFLINESTOPDRAW8:
 	      Panel8StopDraw();
 	      break;	
+	    case OFFLINESTOPDRAW13:
+	      Panel13StopDraw();
+	      break;	
+	    case OFFLINESTOPDRAW14:
+	      Panel14StopDraw();
+	      break;
 
 	      
 	    case OFFLINEPROJECTYFF5:
@@ -2640,7 +2989,65 @@ Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		    }
 		}
 	      break;
+	    case OFFLINECHNUMA13:
+	      if (parm2 == 0)
+		{
+		  if (chanNumberA13 != 15)
+		    {
+		      ++chanNumberA13;
+		      offlinechnumA13->SetIntNumber(chanNumberA13);
+		    }
+		}
+	      else
+		{
+		  if (chanNumberA13 != 0)
+		    {
+		      if (--chanNumberA13 == 0)
+			chanNumberA13 = 0;
+		      offlinechnumA13->SetIntNumber(chanNumberA13);
+		    }
+		}
+	      break;
+	    case OFFLINECHNUMB13:
+	      if (parm2 == 0)
+		{
+		  if (chanNumberB13 != 15)
+		    {
+		      ++chanNumberB13;
+		      offlinechnumB13->SetIntNumber(chanNumberB13);
+		    }
+		}
+	      else
+		{
+		  if (chanNumberB13 != 0)
+		    {
+		      if (--chanNumberB13 == 0)
+			chanNumberB13 = 0;
+		      offlinechnumB13->SetIntNumber(chanNumberB13);
+		    }
+		}
+	      break;
+	    case OFFLINECHNUM14:
+	      if (parm2 == 0)
+		{
+		  if (chanNumber14 != 15)
+		    {
+		      ++chanNumber14;
+		      offlinechnum14->SetIntNumber(chanNumber14);
+		    }
+		}
+	      else
+		{
+		  if (chanNumber14 != 0)
+		    {
+		      if (--chanNumber14 == 0)
+			chanNumber14 = 0;
+		      offlinechnum14->SetIntNumber(chanNumber14);
+		    }
+		}
+	      break;
 
+	      
 	      
 	    default:
 	      break;
@@ -2797,6 +3204,47 @@ Bool_t Offline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	      break;
 	    }
 	  break;	  
+	case OFFLINECHNUMA13:
+	  switch (GET_SUBMSG(msg))
+	    {
+	    case kTE_ENTER:
+	      chanNumberA13 = offlinechnumA13->GetIntNumber();
+	      if(chanNumberA13 > 15) chanNumberA13 = 15;
+	      if(chanNumberA13 < 0) chanNumberA13 = 0;
+	      offlinechnumA13->SetIntNumber(chanNumberA13);
+	      break;
+	    default:
+	      break;
+	    }
+	  break;
+	case OFFLINECHNUMB13:
+	  switch (GET_SUBMSG(msg))
+	    {
+	    case kTE_ENTER:
+	      chanNumberB13 = offlinechnumB13->GetIntNumber();
+	      if(chanNumberB13 > 15) chanNumberB13 = 15;
+	      if(chanNumberB13 < 0) chanNumberB13 = 0;
+	      offlinechnumB13->SetIntNumber(chanNumberB13);
+	      break;
+	    default:
+	      break;
+	    }
+	  break;
+	case OFFLINECHNUM14:
+	  switch (GET_SUBMSG(msg))
+	    {
+	    case kTE_ENTER:
+	      chanNumber14 = offlinechnum14->GetIntNumber();
+	      if(chanNumber14 > 15) chanNumber14 = 15;
+	      if(chanNumber14 < 0) chanNumber14 = 0;
+	      offlinechnum14->SetIntNumber(chanNumber14);
+	      break;
+	    default:
+	      break;
+	    }
+	  break;
+
+
 
 	  
 	  
@@ -3559,6 +4007,8 @@ void Offline::Panel3Draw()
 void Offline::Panel4Draw()
 {
   OfflineReadFileButton->SetEnabled(0);
+  OfflineDrawButton4->SetEnabled(0);
+  
   GausFitButton4->SetEnabled(0);
   GausFitButton4->SetText("Open  Fit");
   canvas4->DeleteExec("dynamicPanel4GausFit");
@@ -3623,6 +4073,7 @@ void Offline::Panel4Draw()
   canvas4->Modified();
   canvas4->Update();
   GausFitButton4->SetEnabled(1);
+  OfflineDrawButton4->SetEnabled(1);
   OfflineReadFileButton->SetEnabled(1);
   gSystem->ProcessEvents();
 }
@@ -4586,6 +5037,11 @@ void Offline::Panel10Draw()
 {
   OfflineReadFileButton->SetEnabled(0);
   OfflineDrawButton10->SetEnabled(0);
+
+  GausFitButton10->SetEnabled(0);
+  GausFitButton10->SetText("Open  Fit");
+  canvas10->DeleteExec("dynamicPanel10GausFit");
+  falggausfit10 = false;
   
   printtextinfor10->SetTextColor(TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B), false);
   printtextinfor10->SetText("Waitting ...");
@@ -4609,7 +5065,6 @@ void Offline::Panel10Draw()
       OfflineDrawButton10->SetEnabled(1);
       OfflineReadFileButton->SetEnabled(1);
       gSystem->ProcessEvents();
-
       return;
     }
   
@@ -4796,6 +5251,7 @@ void Offline::Panel10Draw()
   
   canvas10->Modified();
   canvas10->Update();
+  GausFitButton10->SetEnabled(1);
   OfflineDrawButton10->SetEnabled(1);
   OfflineReadFileButton->SetEnabled(1);
   gSystem->ProcessEvents();
@@ -5061,7 +5517,481 @@ void Offline::Panel12Draw()
   gSystem->ProcessEvents();  
 }
 
+void Offline::Panel13StopDraw()
+{
+  flagdrawstop13 = true;
+}
 
+void Offline::Panel13Draw()
+{
+  OfflineReadFileButton->SetEnabled(0);
+  OfflineDrawButton13->SetEnabled(0);
+  OfflineStopButton13->SetEnabled(1);
+  flagdrawstop13 = false;
+  printtextinfor13->SetTextColor(TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B), false);
+  printtextinfor13->SetText("Waitting ...");
+  gSystem->ProcessEvents();
+
+  for (int i = 0; i < 8; ++i)
+    for (int j = 0; j < 64; ++j)
+      if(offlineth1i13[i][j] != NULL)
+	{
+	  delete offlineth1i13[i][j];
+	  offlineth1i13[i][j] = NULL;
+	}
+
+  if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 500)
+    {
+      printtextinfor13->SetTextColor(TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B), false);
+      printtextinfor13->SetText("500M module CFD is not adjustable.");
+      
+      canvas13->cd();
+      canvas13->Clear();
+      canvas13->Modified();
+      canvas13->Update();
+      OfflineDrawButton13->SetEnabled(1);
+      OfflineStopButton13->SetEnabled(0);
+      OfflineReadFileButton->SetEnabled(1);
+      gSystem->ProcessEvents();
+      return;
+    }
+
+  if(offlinechnumA13->GetIntNumber() == offlinechnumB13->GetIntNumber())
+    {
+      printtextinfor13->SetTextColor(TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B), false);
+      printtextinfor13->SetText("Ch A == Ch B. Pelse re-select it.");
+      
+      canvas13->cd();
+      canvas13->Clear();
+      canvas13->Modified();
+      canvas13->Update();
+      OfflineDrawButton13->SetEnabled(1);
+      OfflineStopButton13->SetEnabled(0);
+      OfflineReadFileButton->SetEnabled(1);
+      gSystem->ProcessEvents();
+      return;
+    }
+
+  if(histxminmax13[1]->GetNumber() >= histxminmax13[2]->GetNumber())
+    {
+      std::cout<<"The range of the histogram is not suitable (xmin >= xmax). The recommended value will be used."<<std::endl;
+      histxminmax13[1]->SetNumber(-500);
+      histxminmax13[2]->SetNumber(500);
+    }
+
+  if(offlineenergylimit13->IsOn())
+    {
+      
+      if(energylimitsab13[0]->GetNumber() >= energylimitsab13[1]->GetNumber())
+	{
+	  std::cout<<"The range of limits of energy is not suitable (A Left >= A Right). The recommended value will be used."<<std::endl;
+	  energylimitsab13[0]->SetNumber(0);
+	  energylimitsab13[1]->SetNumber(65536);
+	}
+
+      if(energylimitsab13[2]->GetNumber() >= energylimitsab13[3]->GetNumber())
+	{
+	  std::cout<<"The range of limits of energy is not suitable (B Left >= B Right). The recommended value will be used."<<std::endl;
+	  energylimitsab13[2]->SetNumber(0);
+	  energylimitsab13[3]->SetNumber(65536);
+	}
+    }
+
+  for (int i = 0; i < 8; ++i)
+    for (int j = 0; j < 64; ++j)
+      {
+	offlineth1i13[i][j] = new TH1I(TString::Format("offlineth1i13_%d_%d",i,j+1).Data(),"",histxminmax13[0]->GetNumber(),histxminmax13[1]->GetNumber(),histxminmax13[2]->GetNumber());
+	offlineth1i13[i][j]->GetXaxis()->SetTitle("#DeltaT / ns");
+	offlineth1i13[i][j]->SetTitle(TString::Format("W_%d",i).Data());
+      }
+  
+  Long64_t deltaft;
+  double deltat;
+  bool flagenergylimits;
+  short pointcfdA[8][64],pointcfdB[8][64];
+  double cfdA[8][64],cfdB[8][64];
+  for (unsigned int i = 0; i < OfflineModuleEventsCount; ++i)
+    {
+      if(offlinechnumA13->GetIntNumber() == offlinedata->GetEventChannel(i) && offlinedata->GetEventTraceLength(i) > 0)//ch
+	{
+	  for (unsigned int j = i; j < OfflineModuleEventsCount; ++j)
+	    {
+	      deltaft = ((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j));
+	      if(TMath::Abs(deltaft) < 100000)
+		{
+		  if(offlinechnumB13->GetIntNumber() == offlinedata->GetEventChannel(j) && offlinedata->GetEventTraceLength(j) > 0)//ch
+		    {
+		      if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 250)
+			deltat = deltaft*8.0;
+		      else
+			deltat = deltaft*10.0;
+
+		      if(deltat >= histxminmax13[1]->GetNumber() && deltat <= histxminmax13[2]->GetNumber())
+			{
+			  flagenergylimits = true;
+			  if(offlineenergylimit13->IsOn())
+			    {
+			      if((int(offlinedata->GetEventEnergy(i)) > energylimitsab13[0]->GetNumber()) && (int(offlinedata->GetEventEnergy(i)) < energylimitsab13[1]->GetNumber()) && (int(offlinedata->GetEventEnergy(j)) > energylimitsab13[2]->GetNumber()) && (int(offlinedata->GetEventEnergy(j)) < energylimitsab13[3]->GetNumber()))
+				flagenergylimits = true;
+			      else
+				flagenergylimits = false;
+			    }
+			  if(flagenergylimits)
+			    {
+
+
+			      
+			      int retval;
+			      retval = Pixie16ComputeFastFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnumA13->GetIntNumber(), offlinedata->GetEventWaveLocation(i),offlinedata->GetEventTraceLength(i), RcdTraceA13, doublefastfilterA13, doublecfdA13);//trace length/trace location
+			      if(retval < 0) ErrorInfo("Offline.cc", "Panel13Draw()", "Pixie16ComputeFastFiltersOffline", retval);
+			      retval = Pixie16ComputeFastFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnumB13->GetIntNumber(), offlinedata->GetEventWaveLocation(j),offlinedata->GetEventTraceLength(j), RcdTraceB13, doublefastfilterB13, doublecfdB13);//trace length/trace location
+			      if(retval < 0) ErrorInfo("Offline.cc", "Panel13Draw()", "Pixie16ComputeFastFiltersOffline", retval);
+
+			      for (int mm = 0; mm < 8; ++mm)
+				for (int nn = 0; nn < choosedelay13->GetSelected(); ++nn)
+				{
+				  HongyiWuPixie16ComputeCFDOffline(offlinedata->GetEventTraceLength(i),doublefastfilterA13,nn+1,mm,&pointcfdA[mm][nn],&cfdA[mm][nn]);
+				  HongyiWuPixie16ComputeCFDOffline(offlinedata->GetEventTraceLength(j),doublefastfilterB13,nn+1,mm,&pointcfdB[mm][nn],&cfdB[mm][nn]);
+				  if(pointcfdA[mm][nn] > -1 && pointcfdB[mm][nn] > -1)
+				    {
+				      if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 100)
+					offlineth1i13[mm][nn]->Fill((pointcfdA[mm][nn]-pointcfdB[mm][nn]+cfdA[mm][nn]-cfdB[mm][nn])*10+(((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j)))*10);
+				      else if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 250)
+					offlineth1i13[mm][nn]->Fill((pointcfdA[mm][nn]-pointcfdB[mm][nn]+cfdA[mm][nn]-cfdB[mm][nn])*4+(((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j)))*8);
+				    }
+				}
+			      
+			     
+
+		
+		
+
+			    }
+			}
+		    }
+		}
+	      else
+	  	{
+	  	  break;
+	  	}
+	    }
+
+	  // =====
+
+	  for (unsigned int j = i; j > 0; --j)
+	    {
+	      deltaft = ((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j));
+	      if(TMath::Abs(deltaft) < 100000)
+		{
+		  if(offlinechnumB13->GetIntNumber() == offlinedata->GetEventChannel(j) && offlinedata->GetEventTraceLength(j) > 0)//ch
+		    {
+		      if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 250)
+			deltat = deltaft*8.0;
+		      else
+			deltat = deltaft*10.0;
+
+		      if(deltat >= histxminmax13[1]->GetNumber() && deltat <= histxminmax13[2]->GetNumber())
+			{
+			  flagenergylimits = true;
+			  if(offlineenergylimit13->IsOn())
+			    {
+			      if((int(offlinedata->GetEventEnergy(i)) > energylimitsab13[0]->GetNumber()) && (int(offlinedata->GetEventEnergy(i)) < energylimitsab13[1]->GetNumber()) && (int(offlinedata->GetEventEnergy(j)) > energylimitsab13[2]->GetNumber()) && (int(offlinedata->GetEventEnergy(j)) < energylimitsab13[3]->GetNumber()))
+				flagenergylimits = true;
+			      else
+				flagenergylimits = false;
+			    }
+			  if(flagenergylimits)
+			    {
+
+
+			      int retval;
+			      retval = Pixie16ComputeFastFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnumA13->GetIntNumber(), offlinedata->GetEventWaveLocation(i),offlinedata->GetEventTraceLength(i), RcdTraceA13, doublefastfilterA13, doublecfdA13);//trace length/trace location
+			      if(retval < 0) ErrorInfo("Offline.cc", "Panel13Draw()", "Pixie16ComputeFastFiltersOffline", retval);
+			      retval = Pixie16ComputeFastFiltersOffline(offlinefilename, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnumB13->GetIntNumber(), offlinedata->GetEventWaveLocation(j),offlinedata->GetEventTraceLength(j), RcdTraceB13, doublefastfilterB13, doublecfdB13);//trace length/trace location
+			      if(retval < 0) ErrorInfo("Offline.cc", "Panel13Draw()", "Pixie16ComputeFastFiltersOffline", retval);
+
+			      for (int mm = 0; mm < 8; ++mm)
+				for (int nn = 0; nn < choosedelay13->GetSelected(); ++nn)
+				{
+				  HongyiWuPixie16ComputeCFDOffline(offlinedata->GetEventTraceLength(i),doublefastfilterA13,nn+1,mm,&pointcfdA[mm][nn],&cfdA[mm][nn]);
+				  HongyiWuPixie16ComputeCFDOffline(offlinedata->GetEventTraceLength(j),doublefastfilterB13,nn+1,mm,&pointcfdB[mm][nn],&cfdB[mm][nn]);
+				  if(pointcfdA[mm][nn] > -1 && pointcfdB[mm][nn] > -1)
+				    {
+				      if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 100)
+					offlineth1i13[mm][nn]->Fill((pointcfdA[mm][nn]-pointcfdB[mm][nn]+cfdA[mm][nn]-cfdB[mm][nn])*10+(((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j)))*10);
+				      else if(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 250)
+					offlineth1i13[mm][nn]->Fill((pointcfdA[mm][nn]-pointcfdB[mm][nn]+cfdA[mm][nn]-cfdB[mm][nn])*4+(((Long64_t(offlinedata->GetEventTime_High(i)))*0x100000000+offlinedata->GetEventTime_Low(i))-((Long64_t(offlinedata->GetEventTime_High(j)))*0x100000000+offlinedata->GetEventTime_Low(j)))*8);
+				    }
+				}
+
+
+
+
+			      
+
+			    }
+			}
+		    }
+		}
+	      else
+	  	{
+	  	  break;
+	  	}
+	    }
+	  
+	}// ch
+
+      if(i%500 == 0)
+	{
+	  if(flagdrawstop13) break;
+	  printtextinfor13->SetText(TString::Format("Drawing...please wait a moment. ==> %d/%d",i,OfflineModuleEventsCount).Data());
+	  gSystem->ProcessEvents();
+	}
+
+    }// for OfflineModuleEventsCount
+
+
+  printtextinfor13->SetTextColor(TColor::RGB2Pixel(COLOR_DODERBLUE_R,COLOR_DODERBLUE_G,COLOR_DODERBLUE_B), false);
+  printtextinfor13->SetText("Done!");
+
+  canvas13->cd();
+  canvas13->Clear();
+  canvas13->Divide(4,2);
+
+  TLegend *legend[8];
+  double histmax[8] = {0};
+  for (int mm = 0; mm < 8; ++mm)
+    for (int nn = 0; nn < choosedelay13->GetSelected(); ++nn)
+      {
+	if(offlineth1i13[mm][nn]->GetMaximum() > histmax[mm])
+	  histmax[mm] = offlineth1i13[mm][nn]->GetMaximum();
+
+	if(nn==0)
+	  {
+	    legend[mm] = new TLegend(0.77,0.25,0.87,0.82);
+	    legend[mm]->SetBorderSize(0);
+	  }
+	legend[mm]->AddEntry(offlineth1i13[mm][nn],detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()) == 250?TString::Format("%0.3f",(nn+1)*0.008).Data():TString::Format("%0.3f",(nn+1)*0.01).Data(),"L");
+      }
+
+  for (int mm = 0; mm < 8; ++mm)
+    for (int nn = 0; nn < choosedelay13->GetSelected(); ++nn)
+      {
+	offlineth1i13[mm][nn]->SetLineColor(nn+1);
+	if(nn==9 || nn==19) offlineth1i13[mm][nn]->SetLineColor(21);
+
+	offlineth1i13[mm][nn]->GetYaxis()->SetRangeUser(0,1.1*histmax[mm]);
+	
+	canvas13->cd(mm+1);
+	if(nn==0)
+	  offlineth1i13[mm][nn]->Draw();
+	else
+	  offlineth1i13[mm][nn]->Draw("same");
+
+	if(nn == choosedelay13->GetSelected()-1) legend[mm]->Draw();
+      }
+  canvas13->Modified();
+  canvas13->Update();
+  OfflineDrawButton13->SetEnabled(1);
+  OfflineStopButton13->SetEnabled(0);
+  OfflineReadFileButton->SetEnabled(1);
+  gSystem->ProcessEvents();
+}
+
+void Offline::Panel14StopDraw()
+{
+  flagdrawstop14 = true;
+}
+
+void Offline::Panel14Draw()
+{
+  OfflineReadFileButton->SetEnabled(0);
+  OfflineDrawButton14->SetEnabled(0);
+  OfflineStopButton14->SetEnabled(1);
+  flagdrawstop14 = false;
+  printtextinfor14->SetTextColor(TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B), false);
+  printtextinfor14->SetText("Waitting ...");
+  gSystem->ProcessEvents();
+
+  if(RcdTrace14 != NULL)
+    {
+      delete []RcdTrace14;
+      RcdTrace14 = NULL;
+    }
+  if(doublefastfilter14 != NULL)
+    {
+      delete []doublefastfilter14;
+      doublefastfilter14 = NULL;
+    }
+  if(offlineth1i14 != NULL)
+    {
+      delete offlineth1i14;
+      offlineth1i14 = NULL;
+    }
+  
+  canvas14->cd();
+  canvas14->Clear();
+  canvas14->Modified();
+  canvas14->Update();
+  gSystem->ProcessEvents();
+
+  offlineth1i14 = new TH1I("offlineth1i14","",1000,0,1);
+  offlineth1i14->GetXaxis()->SetTitle("fraction");
+  offlineth1i14->SetTitle("0.125->7 0.25->6 0.375->5 0.5->4 0.625->3 0.75->2 0.875->1 1.0->0");
+  
+  int inttracelength = -1;
+  for (unsigned int i = 0; i < OfflineModuleEventsCount; ++i)
+    {
+      if(offlinechnum14->GetIntNumber() == offlinedata->GetEventChannel(i) && offlinedata->GetEventTraceLength(i) > 0)//ch / trace length>0
+	{
+	  inttracelength = offlinedata->GetEventTraceLength(i);//trace length
+	  break;
+	}
+    }
+
+  if(inttracelength > -1)
+    {
+      RcdTrace14 = new unsigned short[65536];
+      doublefastfilter14 = new double[65536];
+
+      int retval;
+      unsigned int FastLen, FastGap, FastFilterRange;
+      double ChanParData;
+
+      retval = Pixie16ReadSglModPar((char*)"FAST_FILTER_RANGE", &FastFilterRange, (unsigned short)offlinemodnum->GetIntNumber());
+      if(retval < 0) ErrorInfo("Offline.cc", "Panel14Draw()", "Pixie16ReadSglModPar/FAST_FILTER_RANGE", retval);
+
+      retval = Pixie16ReadSglChanPar((char*)"TRIGGER_RISETIME", &ChanParData, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnum14->GetIntNumber());
+      if(retval < 0) ErrorInfo("Offline.cc", "Panel14Draw()", "Pixie16ReadSglChanPar/TRIGGER_RISETIME", retval);
+      switch(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()))
+	{
+	case 100 ://100
+	  FastLen = ROUND(ChanParData*100/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;
+	case 250 ://250
+	  FastLen = ROUND(ChanParData*125/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;	  
+	case 500 ://500
+	  FastLen = ROUND(ChanParData*100/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;
+	default:
+	  std::cout<<"ERROR: Please call Hongyi Wu(wuhongyi@qq.com)"<<std::endl;
+	  break;
+	}
+
+      retval = Pixie16ReadSglChanPar((char*)"TRIGGER_FLATTOP", &ChanParData, (unsigned short)offlinemodnum->GetIntNumber(), (unsigned short)offlinechnum14->GetIntNumber());
+      if(retval < 0) ErrorInfo("Offline.cc", "Panel14Draw()", "Pixie16ReadSglChanPar/TRIGGER_FLATTOP", retval);
+      switch(detector->GetModuleADCMSPS(offlinemodnum->GetIntNumber()))
+	{
+	case 100 ://100
+	  FastGap = ROUND(ChanParData*100/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;
+	case 250 ://250
+	  FastGap = ROUND(ChanParData*125/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;	  
+	case 500 ://500
+	  FastGap = ROUND(ChanParData*100/std::pow(2.0,(double)FastFilterRange))*std::pow(2.0,(double)FastFilterRange);
+	  break;
+	default:
+	  std::cout<<"ERROR: Please call Hongyi Wu(wuhongyi@qq.com)"<<std::endl;
+	  break;
+	}
+
+      FILE *ListModeFile = NULL;
+      unsigned int fsum0, fsum1;
+      unsigned int offset, x, y;
+      for (unsigned int i = 0; i < OfflineModuleEventsCount; ++i)
+	{
+	  if(offlinechnum14->GetIntNumber() == offlinedata->GetEventChannel(i) && offlinedata->GetEventTraceLength(i) > 0)//ch / trace length>0
+	    {	      
+	      ListModeFile = fopen(offlinefilename, "rb");
+	      if(ListModeFile != NULL)
+		{
+		  fseek(ListModeFile, offlinedata->GetEventWaveLocation(i)*4, SEEK_SET);// Position ListModeFile to the requested trace location
+		  fread(RcdTrace14, 2, offlinedata->GetEventTraceLength(i), ListModeFile);// Read trace
+		  fclose(ListModeFile);// Close file
+		  ListModeFile = NULL;
+		
+		  // Compute fast filter response
+		  offset = 2*FastLen + FastGap - 1;
+		  for(x = offset; x < offlinedata->GetEventTraceLength(i); x++)
+		    {
+		      fsum0 = 0;
+		      for(y = (x-offset); y < (x-offset+FastLen); y++)
+			{
+			  fsum0 += RcdTrace14[y];
+			}
+		      fsum1 = 0;
+		      for(y = (x-offset+FastLen+FastGap); y < (x-offset+2*FastLen+FastGap); y++)
+			{
+			  fsum1 += RcdTrace14[y];
+			}
+		      doublefastfilter14[x] = ((double)fsum1 - (double)fsum0)/(double)FastLen;
+		    }
+
+		  for(x = 0; x < offset; x++)
+		    {
+		      doublefastfilter14[x] = doublefastfilter14[offset];
+		    }
+
+		  int flagfffirst = -1;
+		  double fffirst = -1;
+		  for (int z = 0; z < (int)offlinedata->GetEventTraceLength(i); ++z)//trace length
+		    {
+		      if(doublefastfilter14[z] > fffirst)
+			{
+			  fffirst = doublefastfilter14[z];
+			  flagfffirst = z;
+			}
+		    }
+
+		  double slope = -1;
+		  int flagslopemax = -1;
+		  if(flagfffirst > 0)
+		    {
+		      for (int z = flagfffirst-1; z > 0; --z)
+			{
+			  if(doublefastfilter14[z]/doublefastfilter14[flagfffirst] > 0.01 && doublefastfilter14[z] > 1)
+			    {
+			      if(doublefastfilter14[z+1]-doublefastfilter14[z] >slope)
+				{
+				  slope = doublefastfilter14[z+1]-doublefastfilter14[z];
+				  flagslopemax = z;
+				}
+			    }
+			  else
+			    {
+			      break;
+			    }
+			}
+		      if(flagslopemax > 0) offlineth1i14->Fill((doublefastfilter14[flagslopemax]+doublefastfilter14[flagslopemax+1])/2.0/doublefastfilter14[flagfffirst]);
+		    }
+
+		}//fast filter
+       
+	    }//ch
+
+	  if(i%500 == 0)
+	    {
+	      if(flagdrawstop14) break;
+	      printtextinfor14->SetText(TString::Format("Drawing...please wait a moment. ==> %d/%d",i,OfflineModuleEventsCount).Data());
+	      gSystem->ProcessEvents();
+	    }
+	}//for i
+      
+  
+    }// inttracelength > -1
+  
+  printtextinfor14->SetText("Draw Done!");
+  offlineth1i14->Draw();
+  canvas14->Modified();
+  canvas14->Update();
+  OfflineDrawButton14->SetEnabled(1);
+  OfflineStopButton14->SetEnabled(0);
+  OfflineReadFileButton->SetEnabled(1);
+  gSystem->ProcessEvents();
+}
+  
 
 void Offline::Panel0ReadFile()
 {
@@ -5259,6 +6189,8 @@ void Offline::DrawButtonStatus(bool flag)
   OfflineDrawButton10->SetEnabled(flag);
   OfflineDrawButton11->SetEnabled(flag);
   OfflineDrawButton12->SetEnabled(flag);
+  OfflineDrawButton13->SetEnabled(flag);
+  OfflineDrawButton14->SetEnabled(flag);
 }
 
 
