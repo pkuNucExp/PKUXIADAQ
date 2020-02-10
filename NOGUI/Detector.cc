@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 一 8月 15 16:52:00 2016 (+0800)
-// Last-Updated: 五 11月 22 17:01:37 2019 (+0800)
+// Last-Updated: 日 2月  9 20:38:23 2020 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 45
+//     Update #: 47
 // URL: http://wuhongyi.cn 
 
 #include "Detector.hh"
@@ -753,7 +753,8 @@ int Detector::UpdateSharedMemory()
   shmid1++;
   memcpy(shmptr,&shmid1,sizeof(unsigned int));
   memcpy(shmptr+4,&NumModules,sizeof(unsigned short));
-  memcpy(shmptr+6,&runnumber,sizeof(unsigned int));
+  crateidrunnumber = (crateid << 24) + (runnumber & 0xFFFFFF);
+  memcpy(shmptr+6,&crateidrunnumber,sizeof(unsigned int));
   
   int retval = 0;
   unsigned int Statistics[SHAREDMEMORYDATASTATISTICS];
@@ -804,8 +805,8 @@ void Detector::UpdateEnergySpectrumForModule()
 
 void Detector::UpdateFilePathAndNameInSharedMemory(const char *path,const char *filen)
 {
-  memcpy(shmptr+14,filen,sizeof(unsigned int)*128);
-  memcpy(shmptr+142,path,sizeof(unsigned int)*1024);
+  memcpy(shmptr+14,filen,128);
+  memcpy(shmptr+142,path,1024);
   return;
 }
 
