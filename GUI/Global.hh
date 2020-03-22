@@ -4,15 +4,15 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 二 8月  9 09:24:46 2016 (+0800)
-// Last-Updated: 日 2月  9 13:40:27 2020 (+0800)
+// Last-Updated: 二 3月  3 16:59:02 2020 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 79
+//     Update #: 84
 // URL: http://wuhongyi.cn 
 
 #ifndef _GLOBAL_HH_
 #define _GLOBAL_HH_
 
-const char gVERSION[] = "Version: STD - 2020.02.09";
+const char gVERSION[] = "Version: STD - 2020.03.03";
 
 const char gAbout[] = "\
 Version: Beta ---> Developer version\n\
@@ -34,6 +34,10 @@ Art Director:\n\
   Yi Song\n\
 \n\
 ";
+
+// Features customized for special users
+// #define DECODERONLINE
+
 
 // TColor::RGB2Pixel(COLOR_BLUE_R,COLOR_BLUE_G,COLOR_BLUE_B)
 // TColor::RGB2Pixel(COLOR_RED_R,COLOR_RED_G,COLOR_RED_B)

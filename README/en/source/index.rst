@@ -10,7 +10,7 @@ GDDAQ
    :maxdepth: 3
    :caption: content:
 
-Welcome to PKUXIADAQ's guides.
+Welcome to GDDAQ's guides.
 
 #################################
 
@@ -28,7 +28,7 @@ Welcome to PKUXIADAQ's guides.
    :caption: Install
    
    INSTALL.rst
-
+   MYSQL.rst
 
 #################################
 
@@ -49,6 +49,7 @@ Welcome to PKUXIADAQ's guides.
    UsersGuide/MultipleModulesSynchronously.rst
    UsersGuide/UpdateCPLD.rst
 
+   
 #################################
 
 .. toctree::
