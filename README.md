@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 六 6月 18 13:37:42 2016 (+0800)
-;; Last-Updated: 五 6月  5 21:39:00 2020 (+0800)
+;; Last-Updated: 四 10月 15 10:51:39 2020 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 156
+;;     Update #: 159
 ;; URL: http://wuhongyi.cn -->
 
 # A general-purpose digital data acquisition system(GDDAQ)
@@ -15,9 +15,9 @@
 
 ![PKU logo](pkulogo100.jpg)
 
-<!-- English | [简体中文](https://github.com/wuhongyi/PKUXIADAQ/blob/master/README_zh.md) -->
+English | [简体中文](https://github.com/wuhongyi/PKUXIADAQ/blob/master/README_zh.md)
 
-English | [简体中文](https://github.com/pkuNucExp/PKUXIADAQ/blob/master/README_zh.md)
+<!-- English | [简体中文](https://github.com/pkuNucExp/PKUXIADAQ/blob/master/README_zh.md) -->
 
 A general-purpose digital data acquisition system (GDDAQ) has been developed at Peking University. This GDDAQ, composed of 16-channel Digital Pulse Processor Pixie-16 modules from XIA LLC, is a versatile, flexible, and easily expandable data acquisition system for nuclear physics research in China. The software used by this GDDAQ is based on the CERN ROOT framework and developed and tested in CentOS 7 LINUX operating platform. A flexible trigger system has also been developed to accommodate different experimental settings. A user-friendly software GUI helps users monitor and debug the detection system in real timer or offline. Many offline analysis tools have been developed to help users quickly optimize parameters for various types of detectors without the need for time-consuming tests and measurements. This GDDAQ has been successfully implemented in several nuclear physics experiments and its versatility and high efficiency have been demonstrated.
 
@@ -33,6 +33,8 @@ Download the latest version, please click:  [PKUXIADAQ stable](https://github.co
 
 For web page manual, please click:  [English/简体中文](https://pkunucexp.github.io/PKUXIADAQ/)
 
+For web page MZTIO manual, please click:  [English/简体中文](https://pkunucexp.github.io/MZTIO/)
+
 - manual version in reStructuredText: README/  
 - manual version in offline web: docs/  
 - manual version in pdf: README_en.pdf  README_ch.pdf  
@@ -40,11 +42,13 @@ For web page manual, please click:  [English/简体中文](https://pkunucexp.git
 
 ### Pre-alpha
 
-**Pre-alpha Version:2020.03.20**  
+**Pre-alpha Version:2020.09.30**  
 
 Download the latest version:  [PKUXIADAQ](https://github.com/wuhongyi/PKUXIADAQ)
 
 manual version in web page:  [简体中文/English](http://wuhongyi.cn/PKUXIADAQ/)
+
+MZTIO manual version in web page:  [简体中文/English](http://wuhongyi.cn/MZTIO/)
 
 
 - If you have any comments or suggestions for this project(function addition or improvement), please send an email to Hongyi Wu(wuhongyi@qq.com). 
@@ -75,6 +79,7 @@ Software Developer:
 
 Principal author of the instruction:
 - [Diwen Luo 罗迪雯](https://github.com/luodiwen)
+- [Chenguang Wu 武晨光](https://github.com/mission-young)
 - [Hongyi Wu 吴鸿毅](https://github.com/wuhongyi)
 - [Xiang Wang 王翔](https://github.com/wangxianggit)
 

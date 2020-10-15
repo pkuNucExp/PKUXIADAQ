@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 六 6月 18 13:37:42 2016 (+0800)
-;; Last-Updated: 五 6月  5 21:39:13 2020 (+0800)
+;; Last-Updated: 四 10月 15 10:51:39 2020 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 153
+;;     Update #: 156
 ;; URL: http://wuhongyi.cn -->
 
 # A general-purpose digital data acquisition system(GDDAQ)
@@ -15,9 +15,9 @@
 
 ![PKU logo](pkulogo100.jpg)
 
-<!-- [English](https://github.com/wuhongyi/PKUXIADAQ/blob/master/README.md) | 简体中文 -->
+[English](https://github.com/wuhongyi/PKUXIADAQ/blob/master/README.md) | 简体中文
 
-[English](https://github.com/pkuNucExp/PKUXIADAQ/blob/master/README.md) | 简体中文
+<!-- [English](https://github.com/pkuNucExp/PKUXIADAQ/blob/master/README.md) | 简体中文 -->
 
 ## 版本
 
@@ -31,6 +31,8 @@
 
 网页版说明书请访问:  [English/简体中文](https://pkunucexp.github.io/PKUXIADAQ/)
 
+MZTIO 网页版说明书请访问:  [English/简体中文](https://pkunucexp.github.io/MZTIO/)
+
 
 - reStructuredText版说明书: README/  
 - 离线网页版说明书: docs/  
@@ -39,11 +41,13 @@
 
 ### 准预览版本
 
-**准预览版本 Version:2020.03.20**  
+**准预览版本 Version:2020.09.30**  
 
 程序下载请访问:  [PKUXIADAQ](https://github.com/wuhongyi/PKUXIADAQ)
 
 网页版说明书请访问:  [简体中文/English](http://wuhongyi.cn/PKUXIADAQ/)
+
+MZTIO 网页版说明书请访问:  [简体中文/English](http://wuhongyi.cn/MZTIO/)
 
 
 - 对本获取程序有任何的意见及建议(功能添加及改进)，欢迎给吴鸿毅(wuhongyi@qq.com)发邮件。
@@ -74,6 +78,7 @@
 
 说明书主要撰写者:
 - [Diwen Luo 罗迪雯](https://github.com/luodiwen)
+- [Chenguang Wu 武晨光](https://github.com/mission-young)
 - [Hongyi Wu 吴鸿毅](https://github.com/wuhongyi)
 - [Xiang Wang 王翔](https://github.com/wangxianggit)
 
