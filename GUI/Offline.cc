@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 7月 29 20:39:43 2016 (+0800)
-// Last-Updated: 二 3月  3 14:08:23 2020 (+0800)
+// Last-Updated: 三 4月  7 15:34:31 2021 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 1059
+//     Update #: 1082
 // URL: http://wuhongyi.cn 
 
 // offlinedata->GetEventWaveLocation()
@@ -77,6 +77,8 @@ using namespace std;
 #define BLACKMAN_FFT_WINDOW   2
 #define RECT_FFT_WINDOW       3
 
+
+#define TIMEDIFFGATE  10000  //ns
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -1275,6 +1277,26 @@ void Offline::MakeFold4Panel(TGCompositeFrame *TabPanel)
   GausFitButton4->SetFont(TEXTBUTTONSMALL_FONT, false);
   GausFitButton4->SetTextColor(TColor::RGB2Pixel(TEXTBUTTON_TEXT_R,TEXTBUTTON_TEXT_G,TEXTBUTTON_TEXT_B));
   GausFitButton4->SetBackgroundColor(TColor::RGB2Pixel(TEXTBUTTON_BG_R,TEXTBUTTON_BG_G,TEXTBUTTON_BG_B));
+
+
+  // FitButtonGroup4 = new TGHButtonGroup(parFrame, "");
+  // parFrame->AddFrame(FitButtonGroup4, new TGLayoutHints(kLHintsLeft | kLHintsTop,1, 1, 1, 1));
+  // FitButtonGroup4->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  // // FitButtonGroup4->ChangeSubframesBackground(TColor::RGB2Pixel(100,0,0));
+  // FitButtonGroup4->SetLayoutHints( new TGLayoutHints(kLHintsLeft | kLHintsTop,0, 0, 0, 0),  0);
+  // FitButtonGroup4->SetBorderDrawn(kFALSE);
+  // FitButtonGroup4->SetTitlePos(TGGroupFrame::kLeft);
+  // FitButtonGroup4->Show();
+  // FitButtonGroup4->SetState(kTRUE);//是否开启，开启才可以选，不开启是灰色的
+  // FitButtonGroup4->SetRadioButtonExclusive(kTRUE);
+  // FitRadioButton4[0] = new TGRadioButton(FitButtonGroup4, new TGHotString("Gaus"));
+  // FitRadioButton4[1] = new TGRadioButton(FitButtonGroup4, new TGHotString("Exp+Gaus"));
+  // FitRadioButton4[0]->SetOn();//Default state
+  // FitRadioButton4[0]->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  // FitRadioButton4[1]->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
+  // FitRadioButton4[0]->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
+  // FitRadioButton4[1]->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
+
   
   // draw
   OfflineDrawButton4 = new TGTextButton(parFrame, "&Draw", OFFLINEDRAW4);
@@ -1317,7 +1339,7 @@ void Offline::MakeFold4Panel(TGCompositeFrame *TabPanel)
   chooseth1dbin4->Select(1);
   
   TGTextEntry *LabelBinNumber = new TGTextEntry(parFrame,new TGTextBuffer(30));
-  parFrame->AddFrame(LabelBinNumber, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 0, 0, 3, 0));
+  parFrame->AddFrame(LabelBinNumber, new TGLayoutHints(kLHintsRight | kLHintsTop, 0, 0, 3, 0));
   LabelBinNumber->SetText("Bin Number:");
   LabelBinNumber->Resize(65,15);
   LabelBinNumber->SetEnabled(kFALSE);
@@ -1419,6 +1441,8 @@ void PanelGausFit()
 	  upxold = upx;
 	  upx = temp;
 	}
+
+      // FitRadioButton4[0]->IsOn()
       if(h->Fit("gaus","QL","",upxold,upx) == 0)
 	{
 	  double posl = h->GetFunction("gaus")->GetParameter(1)-3*h->GetFunction("gaus")->GetParameter(2);
@@ -2127,7 +2151,7 @@ void Offline::MakeFold10Panel(TGCompositeFrame *TabPanel)
   LabelChooseHistXmin->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
   LabelChooseHistXmin->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
   
-  histxminmax10[1] = new TGNumberEntryField(drawstyleparFrame, -1, -100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-500,500);
+  histxminmax10[1] = new TGNumberEntryField(drawstyleparFrame, -1, -100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-TIMEDIFFGATE,TIMEDIFFGATE);
   drawstyleparFrame->AddFrame(histxminmax10[1], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
   histxminmax10[1]->Resize(40, 20);
   
@@ -2136,7 +2160,7 @@ void Offline::MakeFold10Panel(TGCompositeFrame *TabPanel)
   LabelChooseHistXmax->SetBackgroundColor(TColor::RGB2Pixel(FRAME_BG_R,FRAME_BG_G,FRAME_BG_B));
   LabelChooseHistXmax->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B));
   
-  histxminmax10[2] = new TGNumberEntryField(drawstyleparFrame, -1, 100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-500,500);
+  histxminmax10[2] = new TGNumberEntryField(drawstyleparFrame, -1, 100, TGNumberFormat::kNESInteger,TGNumberFormat::kNEAAnyNumber,TGNumberFormat::kNELLimitMinMax,-TIMEDIFFGATE,TIMEDIFFGATE);
   drawstyleparFrame->AddFrame(histxminmax10[2], new TGLayoutHints(kLHintsLeft | kLHintsTop, 1, 5, 2, 0));
   histxminmax10[2]->Resize(40, 20);  
 
@@ -5073,8 +5097,8 @@ void Offline::Panel10Draw()
   if(histxminmax10[1]->GetNumber() >= histxminmax10[2]->GetNumber())
     {
       std::cout<<"The range of the histogram is not suitable (xmin >= xmax). The recommended value will be used."<<std::endl;
-      histxminmax10[1]->SetNumber(-500);
-      histxminmax10[2]->SetNumber(500);
+      histxminmax10[1]->SetNumber(-TIMEDIFFGATE);
+      histxminmax10[2]->SetNumber(TIMEDIFFGATE);
     }
 
   if(offlineenergylimit10->IsOn())

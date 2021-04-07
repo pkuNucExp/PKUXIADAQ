@@ -4,9 +4,9 @@
 // Author: Hongyi Wu(吴鸿毅)
 // Email: wuhongyi@qq.com 
 // Created: 五 3月  9 13:01:33 2018 (+0800)
-// Last-Updated: 二 3月  3 14:09:34 2020 (+0800)
+// Last-Updated: 二 2月 16 17:02:15 2021 (+0800)
 //           By: Hongyi Wu(吴鸿毅)
-//     Update #: 403
+//     Update #: 416
 // URL: http://wuhongyi.cn 
 
 #include "MainFrame.hh"
@@ -23,6 +23,9 @@
 #include <fstream>
 #include <unistd.h>
 #include <sys/stat.h>//stat(const char *file_name,struct stat *buf)
+#include <net/if.h>
+#include <arpa/inet.h>
+#include <sys/ioctl.h>
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 ClassImp(MainFrame)
@@ -111,6 +114,13 @@ void MainFrame::CreateMenuBar()
   MenuOffline->Associate(this);
   MenuOffline->SetBackgroundColor(TColor::RGB2Pixel(0,128,0));
 
+  MenuExp = new TGPopupMenu(fClient->GetRoot());
+  MenuExp->AddEntry("Change Thre", EXPTHRESHOLDCHANGE);
+  // MenuExp->AddEntry("Simulation", SIMULATION);
+  MenuExp->Associate(this);
+  MenuExp->SetBackgroundColor(TColor::RGB2Pixel(0,128,0));
+
+  
 
   // MenuBar->GetTitles()->Print();
   
@@ -132,6 +142,8 @@ void MainFrame::CreateMenuBar()
   MenuBar->AddPopup("&Expert ", MenuExpert, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 0, 0, 0));
   MenuBar->AddPopup(" &Debug ", MenuMonitor, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 0, 0, 0));
   MenuBar->AddPopup("&Offline", MenuOffline, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 0, 0, 0));
+  MenuBar->AddPopup("Exp&Mode", MenuExp, new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 0, 0, 0));
+  
 
   // std::cout<<MenuBar->GetTitles()->GetSize()<<std::endl;
   // for (int i = 0; i < MenuBar->GetTitles()->GetSize(); ++i)
@@ -257,6 +269,12 @@ Bool_t MainFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    case SIMULATION:
 	      simulation = new Simulation(fClient->GetRoot(), this/*, detector,filepathtext,filenametext*/); //TODO
 	      break;
+	    case EXPTHRESHOLDCHANGE:
+	      expthresholdchange = new ExpThresholdChange(fClient->GetRoot(), this, detector);
+	      break;
+
+	      
+
 	      
 	    case FILE_SAVE:
 	      {
@@ -308,6 +326,7 @@ Bool_t MainFrame::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  bootB->SetEnabled(1);
 		}
 	      detector->SetRunFlag(false);
+	      ExpModeInit();
 	      break;
 
 	    default:
@@ -355,7 +374,11 @@ void MainFrame::ControlPanel(TGCompositeFrame *TabPanel)
   titleinfor->SetAlignment(kTextCenterX);
   titleinfor->SetFont(TITLE_FONT, false);
   titleinfor->SetTextColor(TColor::RGB2Pixel(TITLE_TEXT_R,TITLE_TEXT_G,TITLE_TEXT_B), false);
-  titleinfor->SetText("List Mode");
+  char ip[1024];
+  if(GetLocalIP(ip)==0)
+    titleinfor->SetText(ip);
+  else 
+    titleinfor->SetText("List Mode");
   titleinfor->Resize(INITIAL_WIDTH, TITLE_LISTMODE_HIGHT);
   titleinfor->SetEnabled(kFALSE);
   titleinfor->SetFrameDrawn(kFALSE);
@@ -1010,6 +1033,7 @@ void MainFrame::SetMenuStatus(bool flag,int flagonline)
       	MenuMonitor->EnableEntry(READCHANSTATUS);
       MenuOffline->EnableEntry(OFFLINEADJUSTPAR);
       MenuOffline->EnableEntry(SIMULATION);
+      MenuExp->EnableEntry(EXPTHRESHOLDCHANGE);
     }
   else
     {
@@ -1032,8 +1056,81 @@ void MainFrame::SetMenuStatus(bool flag,int flagonline)
       MenuMonitor->DisableEntry(READCHANSTATUS);
       MenuOffline->DisableEntry(OFFLINEADJUSTPAR);
       MenuOffline->DisableEntry(SIMULATION);
+      MenuExp->DisableEntry(EXPTHRESHOLDCHANGE);
     }
 
+}
+
+void MainFrame::ExpModeInit()
+{
+  std::cout<<"ExpModeInit"<<std::endl;
+
+  double ChanParData = -1;
+  int retval;
+  std::ofstream expmodeinitwrite;
+  expmodeinitwrite.open("exp/DSPpar.thre");//ios::bin ios::app
+  if(!expmodeinitwrite.is_open())
+    {
+      std::cout<<"can't open file -- exp/DSPpar.thre"<<std::endl;
+      return;
+    }
+
+  for (int mod = 0; mod < detector->NumModules; ++mod)
+    for (int i = 0; i < 16; i++)
+      {
+	retval = Pixie16ReadSglChanPar((char*)"TRIGGER_THRESHOLD", &ChanParData, mod, i);
+	if(retval < 0) ErrorInfo("MainFrame.cc", "ExpModeInit()", "Pixie16ReadSglChanPar/TRIGGER_THRESHOLD", retval);
+	expmodeinitwrite<<mod <<"  "<<i<<"  "<<ChanParData<<endl;
+      }
+  expmodeinitwrite.close();
+  
+}
+
+
+int MainFrame::GetLocalIP(char* outip)
+{
+  int i=0;
+  int sockfd;
+  struct ifconf ifconf;
+  char buf[512];
+  struct ifreq *ifreq;
+  char* ip;
+  TString totalip="";
+  bool flag=false;
+  //初始化ifconf
+  ifconf.ifc_len = 512;
+  ifconf.ifc_buf = buf;
+ 
+  if((sockfd = socket(AF_INET, SOCK_DGRAM, 0))<0)
+    {
+      return -1;
+    }
+  ioctl(sockfd, SIOCGIFCONF, &ifconf);    //获取所有接口信息
+  close(sockfd);
+  //接下来一个一个的获取IP地址
+  ifreq = (struct ifreq*)buf;
+ 
+  for(i=(ifconf.ifc_len/sizeof(struct ifreq)); i>0; i--)
+    {
+      ip = inet_ntoa(((struct sockaddr_in*)&(ifreq->ifr_addr))->sin_addr);
+      //排除127.0.0.1，继续下一个
+      if(strcmp(ip,"127.0.0.1")==0 || strcmp(ip,"192.168.122.1")==0)//
+        {
+	  ifreq++;
+	  continue;
+        }
+      totalip+=ip;
+      totalip+="  ";
+      flag=true;
+      ifreq++;
+    }
+  if(flag)
+    {
+      strcpy(outip,totalip.Data());
+      return 0;
+    }
+
+  return -1;
 }
 
 // 
