@@ -4,9 +4,9 @@
 ;; Author: Hongyi Wu(吴鸿毅)
 ;; Email: wuhongyi@qq.com 
 ;; Created: 六 6月 18 13:37:42 2016 (+0800)
-;; Last-Updated: 三 8月  4 22:19:21 2021 (+0800)
+;; Last-Updated: 一 10月 11 16:07:17 2021 (+0800)
 ;;           By: Hongyi Wu(吴鸿毅)
-;;     Update #: 164
+;;     Update #: 167
 ;; URL: http://wuhongyi.cn -->
 
 # A general-purpose digital data acquisition system(GDDAQ)
@@ -25,7 +25,7 @@
 
 ### 稳定版本
 
-**稳定版本 Version:2021.07.29**  
+**稳定版本 Version:2021.10.11**  
 
 下载最新版本，请点击:  [PKUXIADAQ stable](https://github.com/pkuNucExp/PKUXIADAQ)
 
@@ -41,7 +41,7 @@ MZTIO 网页版说明书请访问:  [English/简体中文](https://pkunucexp.git
 
 ### 准预览版本
 
-**准预览版本 Version:2021.07.29**  
+**准预览版本 Version:2021.10.11**  
 
 程序下载请访问:  [PKUXIADAQ](https://github.com/wuhongyi/PKUXIADAQ)
 
@@ -78,9 +78,8 @@ MZTIO 网页版说明书请访问:  [简体中文/English](http://wuhongyi.cn/MZ
 
 说明书主要撰写者:
 - [Diwen Luo 罗迪雯](https://github.com/luodiwen)
-- [Chenguang Wu 武晨光](https://github.com/mission-young)
 - [Hongyi Wu 吴鸿毅](https://github.com/wuhongyi)
-- [Xiang Wang 王翔](https://github.com/wangxianggit)
+
 
 美术指导：
 - Yi Song 宋祎
@@ -140,7 +139,7 @@ MZTIO 网页版说明书请访问:  [简体中文/English](http://wuhongyi.cn/MZ
 
 - [A general-purpose digital data acquisition system (GDDAQ) at Peking University](https://doi.org/10.1016/j.nima.2020.164200)
 - [Performance of digital data acquisition system in gamma-ray spectroscopy](https://doi.org/10.1007/s41365-021-00917-8)
-
-
+- [基于数字化的通用获取系统及波形分析算法](https://doi.org/10.1360/TB-2021-0552)
+ 
 
 <!-- README.md ends here -->
